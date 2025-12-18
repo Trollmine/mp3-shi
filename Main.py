@@ -1,41 +1,49 @@
-#Mp3 reader V1:
-import pygame
+# Mp3 reader V2:
+import customtkinter
+from tkinter import filedialog
 import pathlib
-import time
-import threading
+import pygame
+import random
 import os
 
-filesDirectory = r"/home/mathis.rocheg@fbuisson2.peda/Documents/mp3-shi/Songs"
-initialCount   = 0
+app = customtkinter.CTk()
+app.geometry("500*400")
 
-for path in pathlib.Path("/home/mathis.rocheg@fbuisson2.peda/Documents/mp3-shi/Songs").iterdir():
-    if path.is_file():
-        initialCount += 1
+filesDirectory = "" #r"E:\PythonProject\mp3-shi\Songs"
+filesList      = []
+songsCount     = 0
 
-fileslist = os.listdir(filesDirectory)
+playButton = customtkinter.CTkButton(app, text="PLAY")
+playButton.pack(padx=20, pady=20)
 
-print(initialCount, ": ", fileslist)
+def choose_directory():
+    global filesDirectory
+    global filesList
+    global songsCount
 
-def play_music(file):
-    pygame.mixer.init()
-    pygame.mixer.music.load(file)
-    pygame.mixer.music.play()
+    filesDirectory = filedialog.askdirectory(
+        title="Choose your songs folder"
+    )
+    filesList = os.listdir(filesDirectory)
+    songsCount = 0
+    for path in pathlib.Path(filesDirectory).iterdir():
+        if path.is_file():
+            songsCount += 1
+    print(filesList)
 
-def wait_for_input():
-    input("stop?")
-    pygame.mixer.music.stop()
+def play_music():
+    if playButton.cget("text") == "STOP":
+        pygame.mixer.music.stop()
+        playButton.configure(text="PLAY")
+    else:
+        pygame.mixer.init()
+        pygame.mixer.music.load(os.path.join(filesDirectory, filesList[random.randint(0, songsCount-1)]))
+        pygame.mixer.music.play()
+        playButton.configure(text="STOP")
 
-question = "Choose a song between: \n"
-for i in range(initialCount):
-    question = question + "["+ str(i) +"]" + str(fileslist[i])+"\n"
+playButton.configure(command=play_music)
 
+changeDirectoryButton = customtkinter.CTkButton(app, text="SELECT DIRECTORY", command=choose_directory)
+changeDirectoryButton.pack(padx=20, pady=20)
 
-songNum = input(question)
-path = os.path.join(filesDirectory, fileslist[int(songNum)])
-
-music_thread = threading.Thread(target=play_music, args=(path,))
-input_thread = threading.Thread(target=wait_for_input)
-
-music_thread.start()
-input_thread.start()
-
+app.mainloop()
