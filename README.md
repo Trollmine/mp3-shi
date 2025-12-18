@@ -1,17 +1,11 @@
 # mp3-shi
 
-Todo:
+Todo:<br />
+-Read mp3 files ✅<br />
+-Read other audio files ✅<br />
+-Make prototype UI ❌<br />
 
--Read mp3 files ✅
-
--Read other audio files ✅
-
--Make prototype UI ❌
-
-Less important:
-
--Upgrade UI
-
--Automatic way to get the song infos (API)
-
--Make a visualizer
+Less important:<br />
+-Upgrade UI<br />
+-Automatic way to get the song infos (API)<br />
+-Make a visualizer<br />
