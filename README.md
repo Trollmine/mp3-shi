@@ -2,12 +2,11 @@
 
 Todo:
 
--Read mp3 files
+-Read mp3 files ✅
 
--Make prototype UI
+-Read other audio files ✅
 
--Read other audio files
-
+-Make prototype UI ❌
 
 Less important:
 
