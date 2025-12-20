@@ -8,6 +8,7 @@ Todo:<br />
 -Make the music being user's choice (It's random for now) ❌ <br />
 -Music loop button system ❌ <br />
 -A pause/resume system instead of a stop/play system ❌ <br />
+-A bar to choose a specific moment ❌ <br />
 
 Less important:<br />
 -Upgrade UI<br />
