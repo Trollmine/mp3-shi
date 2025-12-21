@@ -1,4 +1,4 @@
-# Mp3 reader V4:
+# Mp3 reader V5:
 import customtkinter
 from tkinter import filedialog
 from mutagen.mp3 import MP3
@@ -8,29 +8,35 @@ import os
 
 app = customtkinter.CTk()
 app.title("MP3-SHI")
-app.geometry("500x400")
+app.geometry("500*400")
 
 filesDirectory = "" #r"E:\PythonProject\mp3-shi\Songs"
 filesList      = []
 songsCount     = 0
-playingSong    = "None"
+playingSong    = -1
 
-musicTitle = customtkinter.CTkLabel(app, text="None")
+musicTitle = customtkinter.CTkLabel(app, text="None", font=("", 30))
 musicTitle.pack(padx=20, pady=20)
 
 playButton = customtkinter.CTkButton(app, text="PLAY")
 playButton.pack(padx=20, pady=20)
 
+nextButton = customtkinter.CTkButton(app, text=">")
+nextButton.pack(padx=20, pady=20)
+
+previousButton = customtkinter.CTkButton(app, text="<")
+previousButton.pack(padx=20, pady=20)
+
 changeDirectoryButton = customtkinter.CTkButton(app, text="SELECT DIRECTORY")
 changeDirectoryButton.pack(padx=20, pady=20)
 
 slider_volume = customtkinter.CTkSlider(app, from_=0, to=1, command=pygame.mixer.music.set_volume)
+slider_volume.set(1)
 slider_volume.pack(padx=20, pady=20)
 
 slider_time = customtkinter.CTkSlider(app, from_=0, to=1, command=pygame.mixer.music.set_pos, state="disabled")
 slider_time.set(0)
 slider_time.pack(padx=20, pady=20)
-
 
 info_label = customtkinter.CTkLabel(app, text="", fg_color="transparent")
 info_label.pack(padx=20, pady=20)
@@ -66,7 +72,7 @@ def play_music():
         playButton.configure(text="PLAY")
 
     elif playButton.cget("text") == "PLAY" and songsCount > 1:
-        if playingSong != "None":
+        if playingSong != -1:
             pygame.mixer.music.unpause()
 
         else:
@@ -74,14 +80,39 @@ def play_music():
             playingSong = 0
             slider_time.set(0)
             slider_time.configure(to=MP3(os.path.join(filesDirectory, filesList[playingSong])).info.length, state="normal")
-            musicTitle.configure(text=filesList[playingSong])
+            musicTitle.configure(text=("[", playingSong, "]", filesList[playingSong]))
 
         info_label.configure(text="")
         playButton.configure(text="PAUSE")
     else:
         info_label.configure(text="You have no sound in the selected folder")
 
+def next_music():
+    global playingSong
+    if songsCount > 1:
+        if songsCount-1 > playingSong:
+            playingSong += 1
+        elif songsCount-1 == playingSong:
+            playingSong = 0
+        pygame.mixer.music.load(os.path.join(filesDirectory, filesList[playingSong]))
+        pygame.mixer.music.play()
+        musicTitle.configure(text=("[", playingSong , "]", filesList[playingSong]))
+
+def prev_music():
+    global playingSong
+    if songsCount > 1:
+        if playingSong > 0:
+            playingSong -= 1
+        elif playingSong == 0:
+            playingSong = songsCount - 1
+        pygame.mixer.music.load(os.path.join(filesDirectory, filesList[playingSong]))
+        pygame.mixer.music.play()
+        musicTitle.configure(text=("[", playingSong , "]", filesList[playingSong]))
+
 playButton.configure(command=play_music)
 changeDirectoryButton.configure(command=choose_directory)
+
+nextButton.configure(command=next_music)
+previousButton.configure(command=prev_music)
 
 app.mainloop()
