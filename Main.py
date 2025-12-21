@@ -8,7 +8,7 @@ import os
 
 app = customtkinter.CTk()
 app.title("MP3-SHI")
-app.geometry("500*400")
+app.geometry("500x400")
 
 filesDirectory = "" #r"E:\PythonProject\mp3-shi\Songs"
 filesList      = []
