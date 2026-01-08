@@ -9,7 +9,7 @@ Todo:<br />
 -A pause/resume system instead of a stop/play system ✅ <br />
 -A slider to choose a specific moment ✅ <br />
 -A slider for the volume moment ✅ <br />
--Make the music being user's choice (It's random for now) ❌ <br />
+-Make the music being user's choice (Previous/Next buttons only for now) ❌ <br />
 -Music loop button system ❌ <br />
 
 Less important:<br />
