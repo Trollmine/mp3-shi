@@ -1,4 +1,4 @@
-# Mp3 reader V5:
+# Mp3 reader V6:
 import customtkinter
 from tkinter import filedialog
 from mutagen.mp3 import MP3
