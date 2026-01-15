@@ -6,11 +6,16 @@ import pygame
 import random
 import os
 
-from sqlalchemy import column
+customtkinter.set_appearance_mode("dark")
 
-app = customtkinter.CTk(fg_color="#cd4c34")
+mainText_Color       = ("#000000", "#ffffff")
+mainBackground_Color = ("#ffffff", "#4a536b")
+foreground_Color      = "#ff9a8d"
+
+app = customtkinter.CTk(fg_color=mainBackground_Color)
 app.title("MP3-SHI")
 app.geometry("960x540")
+app.minsize(340, 540)
 
 filesDirectory = ""
 filesList      = []
@@ -18,28 +23,34 @@ songsCount     = 0
 playingSong    = -1
 
 app.grid_columnconfigure(0, weight=1)
+app.grid_rowconfigure(1, weight=1)
 
-musicTitle = customtkinter.CTkLabel(app, text="None", font=("", 30))
-musicTitle.grid(row=0, padx=20, pady=20, sticky="ew")
+musicTitle = customtkinter.CTkLabel(app, text="None", font=("", 30), text_color=mainText_Color)
+musicTitle.grid(row=0, padx=20, pady=20, sticky="ewn")
 
-topFrame = customtkinter.CTkFrame(app, width=1200, height=540, fg_color="#d99044")
-topFrame.grid(row=1, padx=20, pady=20, sticky="ew")
+topFrame = customtkinter.CTkFrame(app, fg_color=foreground_Color)
+topFrame.grid(row=1, padx=20, pady=20, sticky="ewn")
+
+topFrame.grid_columnconfigure(0, weight=1)
+topFrame.grid_rowconfigure(1, weight=1)
 
 slider_time = customtkinter.CTkSlider(topFrame, from_=0, to=1, command=pygame.mixer.music.set_pos, state="disabled")
 slider_time.set(0)
-slider_time.grid(row=0, padx=20, pady=20)
+slider_time.grid(row=0, padx=20, pady=20, sticky="ew")
 
-PlayFrame = customtkinter.CTkFrame(topFrame, fg_color="#fa9857")
-PlayFrame.grid(row=1, padx= 20, pady= 10, sticky="ew")
+playFrame = customtkinter.CTkFrame(topFrame, fg_color=foreground_Color)
+playFrame.grid(row=1, padx= 20, pady= 10, sticky="ewns")
 
-previousButton = customtkinter.CTkButton(PlayFrame, text="<", width=50, height=50)
-previousButton.grid(row=1, column=0, padx=10, pady=10)
+playFrame.grid_columnconfigure(1, weight=1)
 
-playButton = customtkinter.CTkButton(PlayFrame, text="PLAY", width=50, height=50)
+previousButton = customtkinter.CTkButton(playFrame, text="<", width=50, height=50, text_color=mainText_Color)
+previousButton.grid(row=1, column=0, padx=10, pady=10, sticky="w")
+
+playButton = customtkinter.CTkButton(playFrame, text="PLAY", width=50, height=50, text_color=mainText_Color)
 playButton.grid(row=1, column=1, padx=0, pady=10, sticky="ew")
 
-nextButton = customtkinter.CTkButton(PlayFrame, text=">", width=50, height=50)
-nextButton.grid(row=1, column=2, padx=10, pady=10)
+nextButton = customtkinter.CTkButton(playFrame, text=">", width=50, height=50, text_color=mainText_Color)
+nextButton.grid(row=1, column=2, padx=10, pady=10, sticky="e")
 
 changeDirectoryButton = customtkinter.CTkButton(app, text="SELECT DIRECTORY")
 changeDirectoryButton.grid(padx=20, pady=20)
