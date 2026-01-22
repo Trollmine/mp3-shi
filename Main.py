@@ -5,6 +5,8 @@ from mutagen.mp3 import MP3
 import pygame
 import random
 import os
+import configparser
+config = configparser.ConfigParser()
 
 customtkinter.set_appearance_mode("dark")
 
@@ -63,6 +65,9 @@ info_label = customtkinter.CTkLabel(app, text="", fg_color="transparent")
 info_label.grid(padx=20, pady=20)
 
 pygame.mixer.init()
+config.read("config.ini")
+if config.get('path_directory', 'path') == "none":
+    info_label.configure(text="No songs folder selected")
 
 def choose_directory():
     global filesDirectory
@@ -72,6 +77,10 @@ def choose_directory():
     filesDirectory = filedialog.askdirectory(
         title="Choose your songs folder"
     )
+    config.read("config.ini")
+    config.set('path_directory', 'path', filesDirectory)
+    with open('config.ini', 'w') as configfile:
+        config.write(configfile)
 
     secondFilesList = os.listdir(filesDirectory)
     filesList = []
@@ -83,6 +92,7 @@ def choose_directory():
 
     pygame.mixer.music.load(os.path.join(filesDirectory, filesList[0]))
     songsCount = len(filesList)
+    info_label.configure(text="your songs folder is " + config.get('path_directory', 'path') + " and you have " + str(songsCount) + " songs in this folder")
 
     print(songsCount, filesList)
 
