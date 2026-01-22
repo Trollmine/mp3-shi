@@ -1,23 +1,28 @@
-# Mp3 reader V6:
+# Mp3 reader V7:
 import customtkinter
 from tkinter import filedialog
 from mutagen.mp3 import MP3
 import pygame
 import random
 import os
+#from configparser import ConfigParser as config
 import configparser
 config = configparser.ConfigParser()
+
+configPath = os.path.join("Dependencies", "config.ini")
 
 customtkinter.set_appearance_mode("dark")
 
 mainText_Color       = ("#000000", "#ffffff")
 mainBackground_Color = ("#ffffff", "#4a536b")
-foreground_Color      = "#ff9a8d"
+foreground_Color     = ("#ff9a8d", "#40485d")
+clickable_Color      = ()
 
 app = customtkinter.CTk(fg_color=mainBackground_Color)
 app.title("MP3-SHI")
 app.geometry("960x540")
 app.minsize(340, 540)
+app.toplevel_window = None
 
 filesDirectory = ""
 filesList      = []
@@ -57,6 +62,9 @@ nextButton.grid(row=1, column=2, padx=10, pady=10, sticky="e")
 changeDirectoryButton = customtkinter.CTkButton(app, text="SELECT DIRECTORY")
 changeDirectoryButton.grid(padx=20, pady=20)
 
+openSettingsButton = customtkinter.CTkButton(app, text="SETTINGS")
+openSettingsButton.grid(padx=20, pady=20)
+
 slider_volume = customtkinter.CTkSlider(app, from_=0, to=1, command=pygame.mixer.music.set_volume)
 slider_volume.set(1)
 slider_volume.grid(padx=20, pady=20)
@@ -65,9 +73,16 @@ info_label = customtkinter.CTkLabel(app, text="", fg_color="transparent")
 info_label.grid(padx=20, pady=20)
 
 pygame.mixer.init()
-config.read("config.ini")
+
+config.read(configPath)
 if config.get('path_directory', 'path') == "none":
     info_label.configure(text="No songs folder selected")
+else:
+    filesDirectory = config.get('path_directory', 'path')
+    filesList      = os.listdir(filesDirectory)
+    songsCount     = len(filesList)
+    pygame.mixer.music.load(os.path.join(filesDirectory, filesList[0]))
+    info_label.configure(text="your songs folder is " + config.get('path_directory', 'path') + " and you have " + str(songsCount) + " songs in this folder")
 
 def choose_directory():
     global filesDirectory
@@ -77,9 +92,9 @@ def choose_directory():
     filesDirectory = filedialog.askdirectory(
         title="Choose your songs folder"
     )
-    config.read("config.ini")
+    config.read(configPath)
     config.set('path_directory', 'path', filesDirectory)
-    with open('config.ini', 'w') as configfile:
+    with open(configPath, 'w') as configfile:
         config.write(configfile)
 
     secondFilesList = os.listdir(filesDirectory)
@@ -140,8 +155,21 @@ def prev_music():
         pygame.mixer.music.play()
         musicTitle.configure(text=("[", playingSong , "]", filesList[playingSong]))
 
+Windows = []
+def open_window(Name):
+    global Windows
+    for i in Windows:
+        i.destroy()
+
+    NewWindow = customtkinter.CTkToplevel(app, fg_color=mainBackground_Color)
+    NewWindow.title(Name)
+    NewWindow.geometry("300x300")
+    Windows.insert(len(Windows),NewWindow)
+
 playButton.configure(command=play_music)
 changeDirectoryButton.configure(command=choose_directory)
+
+openSettingsButton.configure(command=lambda: open_window("Settings"))
 
 nextButton.configure(command=next_music)
 previousButton.configure(command=prev_music)
