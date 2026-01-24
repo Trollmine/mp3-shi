@@ -1,11 +1,12 @@
 # Mp3 reader V7:
+import threading
 import customtkinter
 from tkinter import filedialog
 from mutagen.mp3 import MP3
 import pygame
 import random
 import os
-#from configparser import ConfigParser as config
+import time
 import configparser
 config = configparser.ConfigParser()
 
@@ -29,6 +30,9 @@ filesList      = []
 songsCount     = 0
 playingSong    = -1
 
+timePlayed = 0
+lastPlayed = 0
+
 app.grid_columnconfigure(0, weight=1)
 app.grid_rowconfigure(1, weight=1)
 
@@ -41,9 +45,11 @@ topFrame.grid(row=1, padx=20, pady=20, sticky="ewn")
 topFrame.grid_columnconfigure(0, weight=1)
 topFrame.grid_rowconfigure(1, weight=1)
 
-slider_time = customtkinter.CTkSlider(topFrame, from_=0, to=1, command=pygame.mixer.music.set_pos, state="disabled")
+slider_time = customtkinter.CTkSlider(topFrame, from_=0, to=1, state="disabled")
 slider_time.set(0)
 slider_time.grid(row=0, padx=20, pady=20, sticky="ew")
+
+labelTime = customtkinter.CTkLabel(topFrame, fg_color=mainText_Color)
 
 playFrame = customtkinter.CTkFrame(topFrame, fg_color=foreground_Color)
 playFrame.grid(row=1, padx= 20, pady= 10, sticky="ewns")
@@ -58,9 +64,6 @@ playButton.grid(row=1, column=1, padx=0, pady=10, sticky="ew")
 
 nextButton = customtkinter.CTkButton(playFrame, text=">", width=50, height=50, text_color=mainText_Color)
 nextButton.grid(row=1, column=2, padx=10, pady=10, sticky="e")
-
-changeDirectoryButton = customtkinter.CTkButton(app, text="SELECT DIRECTORY")
-changeDirectoryButton.grid(padx=20, pady=20)
 
 openSettingsButton = customtkinter.CTkButton(app, text="SETTINGS")
 openSettingsButton.grid(padx=20, pady=20)
@@ -111,16 +114,32 @@ def choose_directory():
 
     print(songsCount, filesList)
 
+def refresh_timePlayed(elapsedTime, isSlider):
+    global timePlayed
+    global lastPlayed
+
+    if isSlider:
+        timePlayed = int(elapsedTime*1000)
+        lastPlayed = int(time.time() * 1000)
+    else:
+        timePlayed += int(elapsedTime) + int(time.time()*1000 - lastPlayed)
+        lastPlayed = time.time()*1000
+
+    slider_time.set(timePlayed/1000)
+
+
 def play_music():
     global playingSong
+    global lastPlayed
     if playButton.cget("text") == "PAUSE":
+        #print(pygame.mixer.music.get_pos())
         pygame.mixer.music.pause()
         playButton.configure(text="PLAY")
+        refresh_timePlayed(0, False)
 
     elif playButton.cget("text") == "PLAY" and songsCount > 1:
         if playingSong != -1:
             pygame.mixer.music.unpause()
-
         else:
             pygame.mixer.music.play()
             playingSong = 0
@@ -128,6 +147,7 @@ def play_music():
             slider_time.configure(to=MP3(os.path.join(filesDirectory, filesList[playingSong])).info.length, state="normal")
             musicTitle.configure(text=("[", playingSong, "]", filesList[playingSong]))
 
+        lastPlayed = time.time()*1000
         info_label.configure(text="")
         playButton.configure(text="PAUSE")
     else:
@@ -135,6 +155,7 @@ def play_music():
 
 def next_music():
     global playingSong
+    global timePlayed
     if songsCount > 1:
         if songsCount-1 > playingSong:
             playingSong += 1
@@ -144,8 +165,12 @@ def next_music():
         pygame.mixer.music.play()
         musicTitle.configure(text=("[", playingSong , "]", filesList[playingSong]))
 
+    playButton.configure(text="PAUSE")
+    timePlayed = 0
+
 def prev_music():
     global playingSong
+    global timePlayed
     if songsCount > 1:
         if playingSong > 0:
             playingSong -= 1
@@ -154,6 +179,8 @@ def prev_music():
         pygame.mixer.music.load(os.path.join(filesDirectory, filesList[playingSong]))
         pygame.mixer.music.play()
         musicTitle.configure(text=("[", playingSong , "]", filesList[playingSong]))
+    playButton.configure(text="PAUSE")
+    timePlayed = 0
 
 Windows = []
 def open_window(Name):
@@ -164,14 +191,19 @@ def open_window(Name):
     NewWindow = customtkinter.CTkToplevel(app, fg_color=mainBackground_Color)
     NewWindow.title(Name)
     NewWindow.geometry("300x300")
+    if Name == "Settings":
+        NewWindow.resizable(False, False)
+        changeDirectoryButton = customtkinter.CTkButton(master=NewWindow, text="SELECT DIRECTORY", command=choose_directory)
+        changeDirectoryButton.grid(padx=20, pady=20)
     Windows.insert(len(Windows),NewWindow)
 
 playButton.configure(command=play_music)
-changeDirectoryButton.configure(command=choose_directory)
 
 openSettingsButton.configure(command=lambda: open_window("Settings"))
 
 nextButton.configure(command=next_music)
 previousButton.configure(command=prev_music)
+
+slider_time.configure(command=lambda x: [pygame.mixer.music.set_pos(slider_time.get()), refresh_timePlayed(slider_time.get(), True)])
 
 app.mainloop()
