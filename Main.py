@@ -1,7 +1,4 @@
-# Mp3 reader V9:
-import threading
-import customtkinter
-from tkinter import filedialog
+nter import filedialog
 from PIL import ImageTk, Image
 from mutagen.mp3 import MP3
 import pygame
@@ -105,6 +102,10 @@ else:
     pygame.mixer.music.load(os.path.join(filesDirectory, filesList[0]))
     info_label.configure(text="your songs folder is " + config.get('path_directory', 'path') + " and you have " + str(songsCount) + " songs in this folder")
 
+if config.get('QOL', 'loop_mode') != 0:
+    loopMode = int(config.get('QOL', 'loop_mode'))
+    loopImage.configure(light_image=Image.open(os.path.join(loopIconsPath, loopIconsList[loopMode])), dark_image=Image.open(os.path.join(loopIconsPath, loopIconsList[loopMode])))
+
 def choose_directory():
     global filesDirectory, filesList, songsCount
 
@@ -154,6 +155,9 @@ def change_loop_mode():
     else:
         loopMode += 1
     loopImage.configure(light_image=Image.open(os.path.join(loopIconsPath, loopIconsList[loopMode])), dark_image=Image.open(os.path.join(loopIconsPath, loopIconsList[loopMode])))
+    config.set('QOL', 'loop_mode', str(loopMode))
+    with open(configPath, 'w') as configfile:
+        config.write(configfile)
 
 def init_music():
     pygame.mixer.music.load(os.path.join(filesDirectory, filesList[playingSong]))
@@ -291,7 +295,6 @@ def refresh_thread():
 
         time.sleep(.05)
 refreshThread = threading.Thread(target=refresh_thread)
-
 refreshThread.start()
 
 app.mainloop()
