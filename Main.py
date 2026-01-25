@@ -1,4 +1,4 @@
-# Mp3 reader V7:
+# Mp3 reader V8:
 import threading
 import customtkinter
 from tkinter import filedialog
@@ -8,6 +8,7 @@ import random
 import os
 import time
 import configparser
+
 config = configparser.ConfigParser()
 
 configPath = os.path.join("Dependencies", "config.ini")
@@ -29,6 +30,7 @@ filesDirectory = ""
 filesList      = []
 songsCount     = 0
 playingSong    = -1
+paused         = True
 
 timePlayed = 0
 lastPlayed = 0
@@ -78,8 +80,8 @@ info_label.grid(padx=20, pady=20)
 pygame.mixer.init()
 
 config.read(configPath)
-if config.get('path_directory', 'path') == "none":
-    info_label.configure(text="No songs folder selected")
+if config.get('path_directory', 'path') == "none" or not config.get('path_directory', 'path'):
+    info_label.configure(text="No songs folder selected, select one in the settings menu")
 else:
     filesDirectory = config.get('path_directory', 'path')
     filesList      = os.listdir(filesDirectory)
@@ -100,86 +102,100 @@ def choose_directory():
     with open(configPath, 'w') as configfile:
         config.write(configfile)
 
-    secondFilesList = os.listdir(filesDirectory)
-    filesList = []
-    print(secondFilesList)
-    for file in secondFilesList:
-        print(file)
-        if file.lower().endswith((".mp3", ".wav", ".ogg")):
-            filesList += [file]
+    if filesDirectory:
+        secondFilesList = os.listdir(filesDirectory)
+        filesList = []
 
-    pygame.mixer.music.load(os.path.join(filesDirectory, filesList[0]))
-    songsCount = len(filesList)
-    info_label.configure(text="your songs folder is " + config.get('path_directory', 'path') + " and you have " + str(songsCount) + " songs in this folder")
+        for file in secondFilesList:
+            print(file)
+            if file.lower().endswith((".mp3", ".wav", ".ogg")):
+                filesList += [file]
 
-    print(songsCount, filesList)
+        pygame.mixer.music.load(os.path.join(filesDirectory, filesList[0]))
+        songsCount = len(filesList)
+        info_label.configure(
+            text="your songs folder is " + config.get('path_directory', 'path') + " and you have " + str(
+                songsCount) + " songs in this folder")
+
+        print(songsCount, filesList)
 
 def refresh_timePlayed(elapsedTime, isSlider):
     global timePlayed
     global lastPlayed
 
-    if isSlider:
-        timePlayed = int(elapsedTime*1000)
-        lastPlayed = int(time.time() * 1000)
-    else:
-        timePlayed += int(elapsedTime) + int(time.time()*1000 - lastPlayed)
-        lastPlayed = time.time()*1000
+    if lastPlayed != 0:
+        if isSlider:
+            timePlayed = int(elapsedTime * 1000)
+            lastPlayed = time.time() * 1000
+        else:
+            timePlayed += int(time.time() * 1000 - lastPlayed)
+            lastPlayed = time.time() * 1000
 
     slider_time.set(timePlayed/1000)
 
+def init_music():
+    pygame.mixer.music.load(os.path.join(filesDirectory, filesList[playingSong]))
+    pygame.mixer.music.play()
+    slider_time.set(0)
+    slider_time.configure(to=MP3(os.path.join(filesDirectory, filesList[playingSong])).info.length, state="normal")
+    musicTitle.configure(text=("[", playingSong, "]", filesList[playingSong]))
 
 def play_music():
     global playingSong
     global lastPlayed
-    if playButton.cget("text") == "PAUSE":
-        #print(pygame.mixer.music.get_pos())
+    global paused
+    if not paused:
         pygame.mixer.music.pause()
         playButton.configure(text="PLAY")
+        paused = True
         refresh_timePlayed(0, False)
 
-    elif playButton.cget("text") == "PLAY" and songsCount > 1:
+    elif paused and songsCount > 1:
         if playingSong != -1:
             pygame.mixer.music.unpause()
         else:
-            pygame.mixer.music.play()
             playingSong = 0
-            slider_time.set(0)
-            slider_time.configure(to=MP3(os.path.join(filesDirectory, filesList[playingSong])).info.length, state="normal")
-            musicTitle.configure(text=("[", playingSong, "]", filesList[playingSong]))
+            init_music()
 
         lastPlayed = time.time()*1000
         info_label.configure(text="")
         playButton.configure(text="PAUSE")
+        paused = False
     else:
         info_label.configure(text="You have no sound in the selected folder")
 
 def next_music():
     global playingSong
     global timePlayed
+    global paused
     if songsCount > 1:
         if songsCount-1 > playingSong:
             playingSong += 1
         elif songsCount-1 == playingSong:
             playingSong = 0
-        pygame.mixer.music.load(os.path.join(filesDirectory, filesList[playingSong]))
-        pygame.mixer.music.play()
-        musicTitle.configure(text=("[", playingSong , "]", filesList[playingSong]))
+
+        init_music()
 
     playButton.configure(text="PAUSE")
+    paused = False
+
     timePlayed = 0
 
 def prev_music():
     global playingSong
     global timePlayed
+    global paused
     if songsCount > 1:
         if playingSong > 0:
             playingSong -= 1
         elif playingSong == 0:
             playingSong = songsCount - 1
-        pygame.mixer.music.load(os.path.join(filesDirectory, filesList[playingSong]))
-        pygame.mixer.music.play()
-        musicTitle.configure(text=("[", playingSong , "]", filesList[playingSong]))
+
+        init_music()
+
     playButton.configure(text="PAUSE")
+    paused = False
+
     timePlayed = 0
 
 Windows = []
@@ -206,4 +222,18 @@ previousButton.configure(command=prev_music)
 
 slider_time.configure(command=lambda x: [pygame.mixer.music.set_pos(slider_time.get()), refresh_timePlayed(slider_time.get(), True)])
 
+def refresh_thread():
+    while True:
+        if pygame.mixer.music.get_busy():
+            refresh_timePlayed(-1, False)
+        elif not paused:
+            print("finished")
+
+
+        time.sleep(.05)
+refreshThread = threading.Thread(target=refresh_thread)
+refreshThread.start()
+
 app.mainloop()
+
+os._exit(0) # Stops the script from running after the main window's closed, preventing threads to keep on running after we close the app
