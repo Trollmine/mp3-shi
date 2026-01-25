@@ -10,7 +10,7 @@ Todo:<br />
 -A slider to choose a specific moment ✅ <br />
 -A slider for the volume moment ✅ <br />
 -Make the music being user's choice (Previous/Next buttons only for now) ❌ <br />
--Music loop button system ❌ <br />
+-Music loop button system ✅ <br />
 
 Less important:<br />
 -Upgrade UI<br />
