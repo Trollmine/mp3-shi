@@ -2,7 +2,7 @@
 import threading
 import customtkinter
 from tkinter import filedialog
-from PIL import ImageTk, Image
+from PIL import Image
 from mutagen.mp3 import MP3
 import pygame
 import random
@@ -84,6 +84,9 @@ loopImage = customtkinter.CTkImage(Image.open(os.path.join(loopIconsPath, loopIc
 loopButton = customtkinter.CTkButton(playFrame, image=loopImage, text="", width=75, height=75, text_color=mainText_color, fg_color=clickable_color, hover_color=main_hover_color)
 loopButton.grid(row=1, column=3, padx=5, pady=10, sticky="e")
 
+openMusicButton = customtkinter.CTkButton(app, text="CHOOSE A FILE", fg_color=clickable_color, hover_color=main_hover_color)
+openMusicButton.grid(padx=10, pady=10)
+
 openSettingsButton = customtkinter.CTkButton(app, text="SETTINGS", fg_color=clickable_color, hover_color=main_hover_color)
 openSettingsButton.grid(padx=10, pady=10)
 
@@ -126,6 +129,10 @@ if config.get('QOL', 'dark_mode') == "enabled":
 else:
     customtkinter.set_appearance_mode("light")
 
+def choose_song():
+    if filesDirectory and songsCount > 0:
+        open_window("CHOOSE A SONG")
+
 def choose_directory():
     global filesDirectory, filesList, songsCount
 
@@ -157,6 +164,8 @@ def choose_directory():
 def refresh_timePlayed(elapsedTime, isSlider):
     global timePlayed, lastPlayed
 
+    print(elapsedTime, isSlider, timePlayed, lastPlayed)
+
     if lastPlayed != 0:
         if isSlider:
             timePlayed = int(elapsedTime * 1000)
@@ -164,6 +173,8 @@ def refresh_timePlayed(elapsedTime, isSlider):
         else:
             timePlayed += int(time.time() * 1000 - lastPlayed)
             lastPlayed = time.time() * 1000
+    else:
+        lastPlayed = time.time() * 1000
 
     slider_time.set(timePlayed/1000)
 
@@ -179,12 +190,20 @@ def change_loop_mode():
     with open(configPath, 'w') as configfile:
         config.write(configfile)
 
-def init_music():
+def init_music(song):
+    global playingSong, timePlayed
+    if type(song) == int:
+        playingSong = song
+
+    print(song, playingSong)
+
     pygame.mixer.music.load(os.path.join(filesDirectory, filesList[playingSong]))
     pygame.mixer.music.play()
+    timePlayed = 0
     slider_time.set(0)
     slider_time.configure(to=MP3(os.path.join(filesDirectory, filesList[playingSong])).info.length, state="normal")
     musicTitle.configure(text=("[", playingSong, "]", filesList[playingSong]))
+    refresh_timePlayed(0, False)
 
 def play_music():
     global playingSong, lastPlayed, paused
@@ -199,7 +218,7 @@ def play_music():
             pygame.mixer.music.unpause()
         else:
             playingSong = 0
-            init_music()
+            init_music(False)
 
         lastPlayed = time.time()*1000
         info_label.configure(text="")
@@ -216,7 +235,7 @@ def next_music():
         elif songsCount-1 == playingSong:
             playingSong = 0
 
-        init_music()
+        init_music(False)
 
     playButton.configure(text="PAUSE")
     paused = False
@@ -231,7 +250,7 @@ def prev_music():
         elif playingSong == 0:
             playingSong = songsCount - 1
 
-        init_music()
+        init_music(False)
 
     playButton.configure(text="PAUSE")
     paused = False
@@ -247,6 +266,7 @@ def open_window(name):
     newWindow = customtkinter.CTkToplevel(app, fg_color=mainBackground_color)
     newWindow.title(name)
     newWindow.geometry("400x300")
+    newWindow.minsize(400, 300)
     newWindow.grid_columnconfigure(0, weight=1)
     newWindow.grid_rowconfigure(0, weight=1)
     if name == "Settings":
@@ -258,13 +278,30 @@ def open_window(name):
         changeDirectoryButton = customtkinter.CTkButton(master=settingsScrollingFrame, text="SELECT DIRECTORY", command=choose_directory, fg_color=clickable_color, hover_color=main_hover_color)
         changeDirectoryButton.grid(row=0, padx=20, pady=20, sticky="ew")
 
-        darkModeButton = customtkinter.CTkButton(master=settingsScrollingFrame, text="ENABLE DARKMODE", command=change_color_mode, fg_color=clickable_color, hover_color=main_hover_color)
+        darkModeButton = customtkinter.CTkButton(master=settingsScrollingFrame, text="LIGHT/DARK MODE", command=change_color_mode, fg_color=clickable_color, hover_color=main_hover_color)
         darkModeButton.grid(row=1, padx=20, pady=10, sticky="ew")
+    if name == "Songs": # Shows all songs from the current selected directory
+        newWindow.resizable(False, False)
+        songsScrollingFrame = customtkinter.CTkScrollableFrame(master=newWindow, fg_color=foreground_color, scrollbar_button_color=main_bars_color, scrollbar_button_hover_color=hover_bars_color)
+        songsScrollingFrame.grid(padx=10, pady=10, column=0, row=0, sticky="ewns")
+        songsScrollingFrame.grid_columnconfigure(0, weight=1)
+
+        buttons = {}
+        for file in os.listdir(filesDirectory):
+            newButton = customtkinter.CTkButton(master=songsScrollingFrame, text=file.lower(), height=40, fg_color=clickable_color, hover_color=main_hover_color)
+            newButton.grid(row=os.listdir(filesDirectory).index(file), padx=20, pady=10, sticky="ew")
+            buttons[newButton] = os.listdir(filesDirectory).index(file)
+
+        for index, file in enumerate(os.listdir(filesDirectory)):
+            button = customtkinter.CTkButton(master=songsScrollingFrame, text=file.lower(), height=40, fg_color=clickable_color, hover_color=main_hover_color, command=lambda i=index: init_music(i))
+            button.grid(row=index, padx=20, pady=10, sticky="ew")
+
     Windows.insert(len(Windows),newWindow)
 
 playButton.configure(command=play_music)
 
 openSettingsButton.configure(command=lambda: open_window("Settings"))
+openMusicButton.configure(command=lambda: open_window("Songs"))
 
 nextButton.configure(command=next_music)
 previousButton.configure(command=prev_music)
@@ -277,7 +314,7 @@ def refresh_thread():
     global paused, playingSong, timePlayed
     while True:
         if pygame.mixer.music.get_busy():
-            refresh_timePlayed(-1, False)
+            refresh_timePlayed(0, False)
         elif not paused:
             print("finished")
             pygame.mixer.music.unload()
@@ -291,7 +328,7 @@ def refresh_thread():
                 timePlayed = 0
                 paused = True
             elif loopMode == 1:
-                init_music()
+                init_music(False)
                 playButton.configure(text="PAUSE")
                 timePlayed = 0
                 paused = False
@@ -302,7 +339,7 @@ def refresh_thread():
                     timePlayed = 0
                     paused = False
                 else:
-                    init_music()
+                    init_music(False)
                     playButton.configure(text="PAUSE")
                     timePlayed = 0
                     paused = False
@@ -312,17 +349,18 @@ def refresh_thread():
                     while randNum == playingSong:
                         randNum = random.randint(0,len(filesList)-1)
                     playingSong = randNum
-                    init_music()
+                    init_music(False)
                     playButton.configure(text="PAUSE")
                     timePlayed = 0
                     paused = False
                 else:
-                    init_music()
+                    init_music(False)
                     playButton.configure(text="PAUSE")
                     timePlayed = 0
                     paused = False
 
         time.sleep(.05)
+
 refreshThread = threading.Thread(target=refresh_thread)
 refreshThread.start()
 
