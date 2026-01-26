@@ -100,8 +100,8 @@ info_label.grid(padx=20, pady=20)
 pygame.mixer.init()
 
 config.read(configPath)
-if config.get('path_directory', 'path') == "none" or not config.get('path_directory', 'path'):
-    info_label.configure(text="No songs folder selected, select one in the settings menu")
+if config.get('path_directory', 'path') == "none" or not config.get('path_directory', 'path') or not os.path.exists(config.get('path_directory', 'path')) :
+    info_label.configure(text="No songs folder selected, or not found, select one in the settings menu")
 else:
     filesDirectory = config.get('path_directory', 'path')
     filesList      = os.listdir(filesDirectory)
