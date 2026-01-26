@@ -1,4 +1,4 @@
-# Mp3 reader V10:
+# Mp3 reader V11:
 import threading
 import customtkinter
 from tkinter import filedialog
@@ -112,6 +112,7 @@ else:
 if int(config.get('QOL', 'loop_mode')) != 0:
     loopMode = int(config.get('QOL', 'loop_mode'))
     loopImage.configure(light_image=Image.open(os.path.join(loopIconsPath, loopIconsList[loopMode])), dark_image=Image.open(os.path.join(loopIconsPath, loopIconsList[loopMode])))
+print(loopMode)
 
 def change_color_mode():
     config.read(configPath)
@@ -191,7 +192,7 @@ def change_loop_mode():
         config.write(configfile)
 
 def init_music(song):
-    global playingSong, timePlayed
+    global playingSong, timePlayed, paused
     if type(song) == int:
         playingSong = song
 
@@ -199,6 +200,8 @@ def init_music(song):
 
     pygame.mixer.music.load(os.path.join(filesDirectory, filesList[playingSong]))
     pygame.mixer.music.play()
+    playButton.configure(text="PAUSE")
+    paused = False
     timePlayed = 0
     slider_time.set(0)
     slider_time.configure(to=MP3(os.path.join(filesDirectory, filesList[playingSong])).info.length, state="normal")
@@ -222,8 +225,6 @@ def play_music():
 
         lastPlayed = time.time()*1000
         info_label.configure(text="")
-        playButton.configure(text="PAUSE")
-        paused = False
     else:
         info_label.configure(text="You have no sound in the selected folder")
 
@@ -237,9 +238,6 @@ def next_music():
 
         init_music(False)
 
-    playButton.configure(text="PAUSE")
-    paused = False
-
     timePlayed = 0
 
 def prev_music():
@@ -251,9 +249,6 @@ def prev_music():
             playingSong = songsCount - 1
 
         init_music(False)
-
-    playButton.configure(text="PAUSE")
-    paused = False
 
     timePlayed = 0
 
