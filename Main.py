@@ -1,4 +1,4 @@
-# Mp3 reader V14:
+# Mp3-shi V14:
 import threading
 import customtkinter
 from tkinter import filedialog
