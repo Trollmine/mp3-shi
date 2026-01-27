@@ -275,6 +275,11 @@ def open_window(name):
     newWindow.title(name)
     newWindow.geometry("400x300")
     newWindow.minsize(400, 300)
+
+    newWindow.lift()
+    newWindow.focus_force()
+    newWindow.attributes("-topmost", True)
+
     newWindow.grid_columnconfigure(0, weight=1)
     newWindow.grid_rowconfigure(0, weight=1)
     if name == "Settings":
