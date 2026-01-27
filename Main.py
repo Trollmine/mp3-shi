@@ -50,7 +50,7 @@ lastPlayed = 0
 app.grid_columnconfigure(0, weight=1)
 app.grid_rowconfigure(1, weight=1)
 
-musicTitle = customtkinter.CTkLabel(app, text="None", font=("", 30), text_color=mainText_color)
+musicTitle = customtkinter.CTkLabel(app, text="None", font=("", 50), text_color=mainText_color)
 musicTitle.grid(row=0, padx=20, pady=20, sticky="ewn")
 
 topFrame = customtkinter.CTkFrame(app, fg_color=foreground_color)
@@ -77,13 +77,13 @@ playFrame = customtkinter.CTkFrame(topFrame, fg_color=foreground_color)
 playFrame.grid(row=1, padx= 20, pady= 10, sticky="ewns")
 playFrame.grid_columnconfigure(1, weight=1)
 
-previousButton = customtkinter.CTkButton(playFrame, text="<", width=75, height=75, text_color=mainText_color, fg_color=clickable_color, hover_color=main_hover_color)
+previousButton = customtkinter.CTkButton(playFrame, text="<", width=75, height=75, text_color=mainText_color, fg_color=clickable_color, hover_color=main_hover_color, font=("", 60))
 previousButton.grid(row=1, column=0, padx=5, pady=10, sticky="w")
 
-playButton = customtkinter.CTkButton(playFrame, text="PLAY", width=75, height=75, text_color=mainText_color, fg_color=clickable_color, hover_color=main_hover_color)
+playButton = customtkinter.CTkButton(playFrame, text="PLAY", width=75, height=75, text_color=mainText_color, fg_color=clickable_color, hover_color=main_hover_color, font=("", 40))
 playButton.grid(row=1, column=1, padx=5, pady=10, sticky="ew")
 
-nextButton = customtkinter.CTkButton(playFrame, text=">", width=75, height=75, text_color=mainText_color, fg_color=clickable_color, hover_color=main_hover_color)
+nextButton = customtkinter.CTkButton(playFrame, text=">", width=75, height=75, text_color=mainText_color, fg_color=clickable_color, hover_color=main_hover_color, font=("", 60))
 nextButton.grid(row=1, column=2, padx=5, pady=10, sticky="ew")
 
 loopImage = customtkinter.CTkImage(light_image=Image.open(os.path.join(loopIconsPath, loopIconsList[loopMode][0])), dark_image=Image.open(os.path.join(loopIconsPath, loopIconsList[loopMode][1])), size=(50, 50))
@@ -372,7 +372,5 @@ refreshThread = threading.Thread(target=refresh_thread)
 refreshThread.start()
 
 app.mainloop()
-
-os._exit(0) # Stops the script from running after the main window's closed, preventing threads to keep on running after we close the app
 
 os._exit(0) # Stops the script from running after the main window's closed, preventing threads to keep on running after we close the app
