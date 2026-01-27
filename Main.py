@@ -1,4 +1,4 @@
-# Mp3 reader V13:
+# Mp3 reader V14:
 import threading
 import customtkinter
 from tkinter import filedialog
@@ -17,13 +17,13 @@ imagesPath    = os.path.join("Dependencies", "Images")
 loopIconsPath = os.path.join(imagesPath, "LoopIcon")
 
 loopIconsList = {
-    0 : "noLoopIcon.png",
-    1 : "loopOneIcon.png",
-    2 : "loopAllIcon.png",
-    3 : "loopAllRandomIcon.png",
+    0 : ["noLoopLight.png", "noLoopDark.png"],
+    1 : ["loopOneLight.png", "loopOneDark.png"],
+    2 : ["loopAllLight.png", "loopAllDark.png"],
+    3 : ["loopRandomLight.png", "loopRandomDark.png"],
 }
 
-mainText_color       = ("#ffffff", "#ffffff")
+mainText_color       = ("#ffedd3", "#bdd0ff")
 mainBackground_color = ("#ffd59a", "#4a536b")
 foreground_color     = ("#ffc26c", "#40485d")
 clickable_color      = ("#ffb246", "#3d538c")
@@ -86,15 +86,15 @@ playButton.grid(row=1, column=1, padx=5, pady=10, sticky="ew")
 nextButton = customtkinter.CTkButton(playFrame, text=">", width=75, height=75, text_color=mainText_color, fg_color=clickable_color, hover_color=main_hover_color)
 nextButton.grid(row=1, column=2, padx=5, pady=10, sticky="ew")
 
-loopImage = customtkinter.CTkImage(Image.open(os.path.join(loopIconsPath, loopIconsList[loopMode])), Image.open(os.path.join(loopIconsPath, loopIconsList[loopMode])), (50,50))
+loopImage = customtkinter.CTkImage(light_image=Image.open(os.path.join(loopIconsPath, loopIconsList[loopMode][0])), dark_image=Image.open(os.path.join(loopIconsPath, loopIconsList[loopMode][1])), size=(50, 50))
 
 loopButton = customtkinter.CTkButton(playFrame, image=loopImage, text="", width=75, height=75, text_color=mainText_color, fg_color=clickable_color, hover_color=main_hover_color)
 loopButton.grid(row=1, column=3, padx=5, pady=10, sticky="e")
 
-openMusicButton = customtkinter.CTkButton(app, text="CHOOSE A FILE", fg_color=clickable_color, hover_color=main_hover_color)
+openMusicButton = customtkinter.CTkButton(app, text="CHOOSE A FILE", fg_color=clickable_color, hover_color=main_hover_color, text_color=mainText_color)
 openMusicButton.grid(padx=10, pady=10)
 
-openSettingsButton = customtkinter.CTkButton(app, text="SETTINGS", fg_color=clickable_color, hover_color=main_hover_color)
+openSettingsButton = customtkinter.CTkButton(app, text="SETTINGS", fg_color=clickable_color, hover_color=main_hover_color, text_color=mainText_color)
 openSettingsButton.grid(padx=10, pady=10)
 
 slider_volume = customtkinter.CTkSlider(app, from_=0, to=1, command=pygame.mixer.music.set_volume, button_color=clickable_color, button_hover_color=main_hover_color, progress_color=main_bars_color, fg_color=hover_bars_color)
@@ -118,7 +118,7 @@ else:
 
 if int(config.get('QOL', 'loop_mode')) != 0:
     loopMode = int(config.get('QOL', 'loop_mode'))
-    loopImage.configure(light_image=Image.open(os.path.join(loopIconsPath, loopIconsList[loopMode])), dark_image=Image.open(os.path.join(loopIconsPath, loopIconsList[loopMode])))
+    loopImage.configure(light_image=Image.open(os.path.join(loopIconsPath, loopIconsList[loopMode][0])), dark_image=Image.open(os.path.join(loopIconsPath, loopIconsList[loopMode][1])))
 print(loopMode)
 
 def change_color_mode():
@@ -194,7 +194,7 @@ def change_loop_mode():
         loopMode = 0
     else:
         loopMode += 1
-    loopImage.configure(light_image=Image.open(os.path.join(loopIconsPath, loopIconsList[loopMode])), dark_image=Image.open(os.path.join(loopIconsPath, loopIconsList[loopMode])))
+    loopImage.configure(light_image=Image.open(os.path.join(loopIconsPath, loopIconsList[loopMode][0])), dark_image=Image.open(os.path.join(loopIconsPath, loopIconsList[loopMode][1])))
     config.set('QOL', 'loop_mode', str(loopMode))
     with open(configPath, 'w') as configfile:
         config.write(configfile)
@@ -288,10 +288,10 @@ def open_window(name):
         settingsScrollingFrame.grid(padx=10, pady=10, column=0, row=0, sticky="ewns")
         settingsScrollingFrame.grid_columnconfigure(0, weight=1)
 
-        changeDirectoryButton = customtkinter.CTkButton(master=settingsScrollingFrame, text="SELECT DIRECTORY", command=choose_directory, fg_color=clickable_color, hover_color=main_hover_color)
+        changeDirectoryButton = customtkinter.CTkButton(master=settingsScrollingFrame, text="SELECT DIRECTORY", text_color=mainText_color, command=choose_directory, fg_color=clickable_color, hover_color=main_hover_color)
         changeDirectoryButton.grid(row=0, padx=20, pady=20, sticky="ew")
 
-        darkModeButton = customtkinter.CTkButton(master=settingsScrollingFrame, text="LIGHT/DARK MODE", command=change_color_mode, fg_color=clickable_color, hover_color=main_hover_color)
+        darkModeButton = customtkinter.CTkButton(master=settingsScrollingFrame, text="LIGHT/DARK MODE", text_color=mainText_color, command=change_color_mode, fg_color=clickable_color, hover_color=main_hover_color)
         darkModeButton.grid(row=1, padx=20, pady=10, sticky="ew")
     if name == "Songs": # Shows all songs from the current selected directory
         newWindow.resizable(False, False)
@@ -299,14 +299,8 @@ def open_window(name):
         songsScrollingFrame.grid(padx=10, pady=10, column=0, row=0, sticky="ewns")
         songsScrollingFrame.grid_columnconfigure(0, weight=1)
 
-        buttons = {}
-        for file in os.listdir(filesDirectory):
-            newButton = customtkinter.CTkButton(master=songsScrollingFrame, text=file.lower(), height=40, fg_color=clickable_color, hover_color=main_hover_color)
-            newButton.grid(row=os.listdir(filesDirectory).index(file), padx=20, pady=10, sticky="ew")
-            buttons[newButton] = os.listdir(filesDirectory).index(file)
-
         for index, file in enumerate(os.listdir(filesDirectory)):
-            button = customtkinter.CTkButton(master=songsScrollingFrame, text=file.lower(), height=40, fg_color=clickable_color, hover_color=main_hover_color, command=lambda i=index: init_music(i))
+            button = customtkinter.CTkButton(master=songsScrollingFrame, text=file.lower(), height=40, fg_color=clickable_color, hover_color=main_hover_color, command=lambda i=index: init_music(i), text_color=mainText_color)
             button.grid(row=index, padx=20, pady=10, sticky="ew")
 
     Windows.insert(len(Windows),newWindow)
@@ -378,5 +372,7 @@ refreshThread = threading.Thread(target=refresh_thread)
 refreshThread.start()
 
 app.mainloop()
+
+os._exit(0) # Stops the script from running after the main window's closed, preventing threads to keep on running after we close the app
 
 os._exit(0) # Stops the script from running after the main window's closed, preventing threads to keep on running after we close the app
