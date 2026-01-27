@@ -1,4 +1,4 @@
-# Mp3 reader V11:
+# Mp3 reader V12:
 import threading
 import customtkinter
 from tkinter import filedialog
@@ -55,19 +55,26 @@ musicTitle.grid(row=0, padx=20, pady=20, sticky="ewn")
 
 topFrame = customtkinter.CTkFrame(app, fg_color=foreground_color)
 topFrame.grid(row=1, padx=20, pady=20, sticky="ewn")
-
 topFrame.grid_columnconfigure(0, weight=1)
-topFrame.grid_rowconfigure(1, weight=1)
 
-slider_time = customtkinter.CTkSlider(topFrame, from_=0, to=1, state="disabled", button_color=clickable_color, button_hover_color=main_hover_color, progress_color=main_bars_color, fg_color=hover_bars_color)
+sliderFrame = customtkinter.CTkFrame(topFrame, fg_color="transparent")
+sliderFrame.grid(row=0, padx= 20, pady= 10, sticky="ew")
+sliderFrame.grid_columnconfigure(1, weight=1)
+
+timer_text  = customtkinter.CTkLabel(sliderFrame, width=10, height=20, text="00:00", text_color=mainText_color)
+timer_text.grid(row=0, column=0, padx=20, pady=20, sticky="ewn")
+
+timer_end_text  = customtkinter.CTkLabel(sliderFrame, width=10, height=20, text="00:00", text_color=mainText_color)
+timer_end_text.grid(row=0, column=2, padx=20, pady=20, sticky="ewn")
+
+slider_time = customtkinter.CTkSlider(sliderFrame, from_=0, to=1, state="disabled", button_color=clickable_color, button_hover_color=main_hover_color, progress_color=main_bars_color, fg_color=hover_bars_color)
 slider_time.set(0)
-slider_time.grid(row=0, padx=20, pady=20, sticky="ew")
+slider_time.grid(row=0, column=1, padx=10, pady=20, sticky="ewn")
 
 labelTime = customtkinter.CTkLabel(topFrame, fg_color=mainText_color)
 
 playFrame = customtkinter.CTkFrame(topFrame, fg_color=foreground_color)
 playFrame.grid(row=1, padx= 20, pady= 10, sticky="ewns")
-
 playFrame.grid_columnconfigure(1, weight=1)
 
 previousButton = customtkinter.CTkButton(playFrame, text="<", width=75, height=75, text_color=mainText_color, fg_color=clickable_color, hover_color=main_hover_color)
@@ -178,6 +185,7 @@ def refresh_timePlayed(elapsedTime, isSlider):
         lastPlayed = time.time() * 1000
 
     slider_time.set(timePlayed/1000)
+    timer_text.configure(text="%02d:%02d"%((timePlayed/1000)//60,(timePlayed/1000)-((timePlayed/1000)//60)*60))
 
 def change_loop_mode():
     global loopMode
@@ -204,7 +212,9 @@ def init_music(song):
     paused = False
     timePlayed = 0
     slider_time.set(0)
-    slider_time.configure(to=MP3(os.path.join(filesDirectory, filesList[playingSong])).info.length, state="normal")
+    music_time = MP3(os.path.join(filesDirectory, filesList[playingSong])).info.length
+    slider_time.configure(to=music_time, state="normal")
+    timer_end_text.configure(text="%02d:%02d" % (music_time // 60, music_time - (music_time // 60) * 60))
     musicTitle.configure(text=("[", playingSong, "]", filesList[playingSong]))
     refresh_timePlayed(0, False)
 
@@ -360,5 +370,7 @@ refreshThread = threading.Thread(target=refresh_thread)
 refreshThread.start()
 
 app.mainloop()
+
+os._exit(0) # Stops the script from running after the main window's closed, preventing threads to keep on running after we close the app
 
 os._exit(0) # Stops the script from running after the main window's closed, preventing threads to keep on running after we close the app
