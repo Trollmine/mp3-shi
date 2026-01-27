@@ -1,4 +1,4 @@
-# Mp3 reader V12:
+# Mp3 reader V13:
 import threading
 import customtkinter
 from tkinter import filedialog
@@ -172,7 +172,7 @@ def choose_directory():
 def refresh_timePlayed(elapsedTime, isSlider):
     global timePlayed, lastPlayed
 
-    print(elapsedTime, isSlider, timePlayed, lastPlayed)
+    #print(elapsedTime, isSlider, timePlayed, lastPlayed)
 
     if lastPlayed != 0:
         if isSlider:
@@ -204,7 +204,7 @@ def init_music(song):
     if type(song) == int:
         playingSong = song
 
-    print(song, playingSong)
+    #print(song, playingSong)
 
     pygame.mixer.music.load(os.path.join(filesDirectory, filesList[playingSong]))
     pygame.mixer.music.play()
@@ -220,6 +220,7 @@ def init_music(song):
 
 def play_music():
     global playingSong, lastPlayed, paused
+    print(paused)
     if not paused:
         pygame.mixer.music.pause()
         playButton.configure(text="PLAY")
@@ -229,6 +230,8 @@ def play_music():
     elif paused and songsCount > 1:
         if playingSong != -1:
             pygame.mixer.music.unpause()
+            paused = False
+            playButton.configure(text="PAUSE")
         else:
             playingSong = 0
             init_music(False)
@@ -321,7 +324,7 @@ def refresh_thread():
         if pygame.mixer.music.get_busy():
             refresh_timePlayed(0, False)
         elif not paused:
-            print("finished")
+            # print("finished")
             pygame.mixer.music.unload()
             if loopMode == 0:
                 pygame.mixer.music.load(os.path.join(filesDirectory, filesList[playingSong]))
@@ -370,7 +373,5 @@ refreshThread = threading.Thread(target=refresh_thread)
 refreshThread.start()
 
 app.mainloop()
-
-os._exit(0) # Stops the script from running after the main window's closed, preventing threads to keep on running after we close the app
 
 os._exit(0) # Stops the script from running after the main window's closed, preventing threads to keep on running after we close the app
