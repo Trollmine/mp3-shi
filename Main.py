@@ -16,6 +16,22 @@ configPath    = os.path.join("Dependencies", "config.ini")
 imagesPath    = os.path.join("Dependencies", "Images")
 loopIconsPath = os.path.join(imagesPath, "LoopIcon")
 
+playlists = {
+}
+
+"""
+config.read(configPath)
+for playlist in playlists:
+    songs = ""
+    for song in playlists[playlist]:
+        songs += str(song) + ","
+    print(playlist)
+    config.set("playlists", playlist, songs)
+
+with open(configPath, 'w') as configfile:
+    config.write(configfile)
+"""
+
 loopIconsList = {
     0 : ["noLoopLight.png", "noLoopDark.png"],
     1 : ["loopOneLight.png", "loopOneDark.png"],
@@ -30,6 +46,13 @@ clickable_color      = ("#ffb246", "#3d538c")
 main_hover_color     = ("#d99739", "#2a3c6c")
 main_bars_color      = ("#ffdfb2", "#6a748e")
 hover_bars_color     = ("#e3c7a1", "#4f5668")
+
+unselected_color       = clickable_color
+selected_color         = ("#7ee451", "#3d8c57")
+unselected_text_color  = mainText_color
+selected_text_color    = ("#e7ffdc", "#a5deb8")
+unselected_hover_color = main_hover_color
+selected_hover_color   = ("#4aa422", "#176e34")
 
 app = customtkinter.CTk(fg_color=mainBackground_color)
 app.title("MP3-SHI")
@@ -48,33 +71,47 @@ timePlayed = 0
 lastPlayed = 0
 
 app.grid_columnconfigure(0, weight=1)
-app.grid_rowconfigure(1, weight=1)
+#app.grid_rowconfigure(1, weight=1)
 
-musicTitle = customtkinter.CTkLabel(app, text="None", font=("", 50), text_color=mainText_color)
+musicTitle = customtkinter.CTkLabel(app, text="", font=("", 50), text_color=mainText_color)
 musicTitle.grid(row=0, padx=20, pady=20, sticky="ewn")
 
+# topFrame part
 topFrame = customtkinter.CTkFrame(app, fg_color=foreground_color)
-topFrame.grid(row=1, padx=20, pady=20, sticky="ewn")
+topFrame.grid(row=2, padx=20, pady=20, sticky="ewn")
 topFrame.grid_columnconfigure(0, weight=1)
 
+# sliderFrame in topFrame part
 sliderFrame = customtkinter.CTkFrame(topFrame, fg_color="transparent")
-sliderFrame.grid(row=0, padx= 20, pady= 10, sticky="ew")
+sliderFrame.grid(row=0, padx= 20, pady= 5, sticky="ew")
 sliderFrame.grid_columnconfigure(1, weight=1)
 
-timer_text  = customtkinter.CTkLabel(sliderFrame, width=10, height=20, text="00:00", text_color=mainText_color)
+timer_text  = customtkinter.CTkLabel(sliderFrame, width=10, height=20, text="00:00", text_color=mainText_color, font=("", 20))
 timer_text.grid(row=0, column=0, padx=20, pady=20, sticky="ewn")
 
-timer_end_text  = customtkinter.CTkLabel(sliderFrame, width=10, height=20, text="00:00", text_color=mainText_color)
+timer_end_text  = customtkinter.CTkLabel(sliderFrame, width=10, height=20, text="00:00", text_color=mainText_color, font=("", 20))
 timer_end_text.grid(row=0, column=2, padx=20, pady=20, sticky="ewn")
 
 slider_time = customtkinter.CTkSlider(sliderFrame, from_=0, to=1, state="disabled", button_color=clickable_color, button_hover_color=main_hover_color, progress_color=main_bars_color, fg_color=hover_bars_color)
 slider_time.set(0)
 slider_time.grid(row=0, column=1, padx=10, pady=20, sticky="ewn")
 
-labelTime = customtkinter.CTkLabel(topFrame, fg_color=mainText_color)
+# TopFrame in topFrame part
+very_topFrame = customtkinter.CTkFrame(topFrame, fg_color="transparent", height=50)
+very_topFrame.grid(row=1, padx=20, pady=0)
 
+openMusicButton = customtkinter.CTkButton(very_topFrame, text="CHOOSE A FILE", fg_color=clickable_color, hover_color=main_hover_color, text_color=mainText_color, width=100)
+openMusicButton.grid(padx=10, pady=10, row=0, column=0, sticky="ew")
+
+playlistButton = customtkinter.CTkButton(very_topFrame, text="PLAYLISTS", fg_color=clickable_color, hover_color=main_hover_color, text_color=mainText_color, width=100)
+playlistButton.grid(padx=10, pady=10, row=0, column=1, sticky="ew")
+
+openSettingsButton = customtkinter.CTkButton(very_topFrame, text="SETTINGS", fg_color=clickable_color, hover_color=main_hover_color, text_color=mainText_color, width=100)
+openSettingsButton.grid(padx=10, pady=10, row=0, column=2, sticky="ew")
+
+# playFrame in topFrame part
 playFrame = customtkinter.CTkFrame(topFrame, fg_color=foreground_color)
-playFrame.grid(row=1, padx= 20, pady= 10, sticky="ewns")
+playFrame.grid(row=2, padx= 20, pady= 5, sticky="ewns")
 playFrame.grid_columnconfigure(1, weight=1)
 
 previousButton = customtkinter.CTkButton(playFrame, text="<", width=75, height=75, text_color=mainText_color, fg_color=clickable_color, hover_color=main_hover_color, font=("", 60))
@@ -90,12 +127,6 @@ loopImage = customtkinter.CTkImage(light_image=Image.open(os.path.join(loopIcons
 
 loopButton = customtkinter.CTkButton(playFrame, image=loopImage, text="", width=75, height=75, text_color=mainText_color, fg_color=clickable_color, hover_color=main_hover_color)
 loopButton.grid(row=1, column=3, padx=5, pady=10, sticky="e")
-
-openMusicButton = customtkinter.CTkButton(app, text="CHOOSE A FILE", fg_color=clickable_color, hover_color=main_hover_color, text_color=mainText_color)
-openMusicButton.grid(padx=10, pady=10)
-
-openSettingsButton = customtkinter.CTkButton(app, text="SETTINGS", fg_color=clickable_color, hover_color=main_hover_color, text_color=mainText_color)
-openSettingsButton.grid(padx=10, pady=10)
 
 slider_volume = customtkinter.CTkSlider(app, from_=0, to=1, command=pygame.mixer.music.set_volume, button_color=clickable_color, button_hover_color=main_hover_color, progress_color=main_bars_color, fg_color=hover_bars_color)
 slider_volume.set(1)
@@ -119,7 +150,6 @@ else:
 if int(config.get('QOL', 'loop_mode')) != 0:
     loopMode = int(config.get('QOL', 'loop_mode'))
     loopImage.configure(light_image=Image.open(os.path.join(loopIconsPath, loopIconsList[loopMode][0])), dark_image=Image.open(os.path.join(loopIconsPath, loopIconsList[loopMode][1])))
-print(loopMode)
 
 def change_color_mode():
     config.read(configPath)
@@ -157,7 +187,6 @@ def choose_directory():
         filesList = []
 
         for file in secondFilesList:
-            print(file)
             if file.lower().endswith((".mp3", ".wav", ".ogg")):
                 filesList += [file]
 
@@ -167,7 +196,31 @@ def choose_directory():
             text="your songs folder is " + config.get('path_directory', 'path') + " and you have " + str(
                 songsCount) + " songs in this folder")
 
-        print(songsCount, filesList)
+new_playlist_songs_list = []
+def create_playlist(button, name):
+    global new_playlist_songs_list
+    global playlists
+
+    playlists[name] = new_playlist_songs_list
+
+    button.destroy()
+    new_playlist_songs_list = []
+    print(new_playlist_songs_list, playlists)
+
+
+def select_songs_to_create_playlist():
+    open_window("Create playlist")
+
+    print("creating playlist")
+
+def select_song(button, songnum):
+    global new_playlist_songs_list
+    if button.cget("fg_color") == unselected_color:
+        button.configure(fg_color=selected_color, hover_color=selected_hover_color, text_color=selected_text_color)
+        new_playlist_songs_list += [songnum]
+    else:
+        button.configure(fg_color=unselected_color, hover_color=unselected_hover_color, text_color=unselected_text_color)
+        new_playlist_songs_list -= [songnum]
 
 def refresh_timePlayed(elapsedTime, isSlider):
     global timePlayed, lastPlayed
@@ -215,12 +268,11 @@ def init_music(song):
     music_time = MP3(os.path.join(filesDirectory, filesList[playingSong])).info.length
     slider_time.configure(to=music_time, state="normal")
     timer_end_text.configure(text="%02d:%02d" % (music_time // 60, music_time - (music_time // 60) * 60))
-    musicTitle.configure(text=("[", playingSong, "]", filesList[playingSong]))
+    musicTitle.configure(text=("[", playingSong+1, "]", filesList[playingSong]))
     refresh_timePlayed(0, False)
 
 def play_music():
     global playingSong, lastPlayed, paused
-    print(paused)
     if not paused:
         pygame.mixer.music.pause()
         playButton.configure(text="PLAY")
@@ -268,47 +320,73 @@ def prev_music():
 Windows = []
 def open_window(name):
     global Windows
-    for i in Windows:
-        i.destroy()
+
+    for window in Windows:
+        window.destroy()
 
     newWindow = customtkinter.CTkToplevel(app, fg_color=mainBackground_color)
     newWindow.title(name)
     newWindow.geometry("400x300")
     newWindow.minsize(400, 300)
+    newWindow.resizable(False, False)
 
-    newWindow.lift()
+    newWindow.tkraise()
     newWindow.focus_force()
     newWindow.attributes("-topmost", True)
 
     newWindow.grid_columnconfigure(0, weight=1)
     newWindow.grid_rowconfigure(0, weight=1)
+
+    scrollingFrame = customtkinter.CTkScrollableFrame(master=newWindow, fg_color=foreground_color, scrollbar_button_color=main_bars_color, scrollbar_button_hover_color=hover_bars_color)
+    scrollingFrame.grid(padx=10, pady=10, column=0, row=0, sticky="ewns")
+    scrollingFrame.grid_columnconfigure(0, weight=1)
     if name == "Settings":
-        newWindow.resizable(False, False)
-        settingsScrollingFrame = customtkinter.CTkScrollableFrame(master=newWindow, fg_color=foreground_color, scrollbar_button_color=main_bars_color, scrollbar_button_hover_color=hover_bars_color)
-        settingsScrollingFrame.grid(padx=10, pady=10, column=0, row=0, sticky="ewns")
-        settingsScrollingFrame.grid_columnconfigure(0, weight=1)
+        changeDirectoryButton = customtkinter.CTkButton(master=scrollingFrame, text="SELECT DIRECTORY", height=40, text_color=mainText_color, command=choose_directory, fg_color=clickable_color, hover_color=main_hover_color)
+        changeDirectoryButton.grid(row=0, padx=20, pady=10, sticky="ew")
 
-        changeDirectoryButton = customtkinter.CTkButton(master=settingsScrollingFrame, text="SELECT DIRECTORY", text_color=mainText_color, command=choose_directory, fg_color=clickable_color, hover_color=main_hover_color)
-        changeDirectoryButton.grid(row=0, padx=20, pady=20, sticky="ew")
-
-        darkModeButton = customtkinter.CTkButton(master=settingsScrollingFrame, text="LIGHT/DARK MODE", text_color=mainText_color, command=change_color_mode, fg_color=clickable_color, hover_color=main_hover_color)
+        darkModeButton = customtkinter.CTkButton(master=scrollingFrame, text="LIGHT/DARK MODE", height=40, text_color=mainText_color, command=change_color_mode, fg_color=clickable_color, hover_color=main_hover_color)
         darkModeButton.grid(row=1, padx=20, pady=10, sticky="ew")
-    if name == "Songs": # Shows all songs from the current selected directory
-        newWindow.resizable(False, False)
-        songsScrollingFrame = customtkinter.CTkScrollableFrame(master=newWindow, fg_color=foreground_color, scrollbar_button_color=main_bars_color, scrollbar_button_hover_color=hover_bars_color)
-        songsScrollingFrame.grid(padx=10, pady=10, column=0, row=0, sticky="ewns")
-        songsScrollingFrame.grid_columnconfigure(0, weight=1)
 
+    elif name == "Songs": # Shows all songs from the current selected directory
         for index, file in enumerate(os.listdir(filesDirectory)):
-            button = customtkinter.CTkButton(master=songsScrollingFrame, text=file.lower(), height=40, fg_color=clickable_color, hover_color=main_hover_color, command=lambda i=index: init_music(i), text_color=mainText_color)
+            button = customtkinter.CTkButton(master=scrollingFrame, text=file.lower(), height=40, fg_color=clickable_color, hover_color=main_hover_color, command=lambda i=index: init_music(i), text_color=mainText_color)
             button.grid(row=index, padx=20, pady=10, sticky="ew")
 
-    Windows.insert(len(Windows),newWindow)
+    elif name == "Create playlist":
+        scrollingFrame.configure(height=250)
+        scrollingFrame.grid(row=1, padx=20, pady=5, sticky="ew")
+        newWindow.grid_rowconfigure(1, weight=1)
+        newWindow.geometry("600x450")
+        playlist_name_textbox = customtkinter.CTkTextbox(master=newWindow, height=50, text_color=mainText_color, activate_scrollbars=False, scrollbar_button_hover_color=hover_bars_color, scrollbar_button_color=main_bars_color, fg_color=clickable_color, font=("",20))
+        playlist_name_textbox.grid(row=0, padx=20, pady=10, sticky="ewn")
+
+        playlist_done_button = customtkinter.CTkButton(master=newWindow, height=50, text_color=mainText_color, text="Done", fg_color=clickable_color, hover_color=main_hover_color, font=("",20))
+        playlist_done_button.configure(command=lambda: create_playlist(newWindow, playlist_name_textbox.get(0.0, "end")))
+        playlist_done_button.grid(row=2, padx=20, pady=10, sticky="ewns")
+
+        for index, file in enumerate(os.listdir(filesDirectory)):
+            button = customtkinter.CTkButton(master=scrollingFrame, text=file.lower(), height=40, fg_color=unselected_color, hover_color=main_hover_color, text_color=mainText_color)
+            button.configure(command=lambda b=button,i=index: select_song(b, i))
+            button.grid(row=index, padx=20, pady=10, sticky="ew")
+
+    elif name == "Playlists":
+        scrollingFrame.grid(row=1)
+        newWindow.grid_rowconfigure(1, weight=1)
+        create_playlist_button = customtkinter.CTkButton(master=newWindow, text="NEW PLAYLIST", height=40, text_color=mainText_color, command=select_songs_to_create_playlist, fg_color=clickable_color, hover_color=main_hover_color)
+        create_playlist_button.grid(row=0, padx=20, pady=10, sticky="ew")
+
+        if playlists:
+            print("not empty")
+        else:
+            print("empty")
+
+    Windows.insert(len(Windows), newWindow)
 
 playButton.configure(command=play_music)
 
 openSettingsButton.configure(command=lambda: open_window("Settings"))
 openMusicButton.configure(command=lambda: open_window("Songs"))
+playlistButton.configure(command=lambda: open_window("Playlists"))
 
 nextButton.configure(command=next_music)
 previousButton.configure(command=prev_music)
