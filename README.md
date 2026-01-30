@@ -11,7 +11,7 @@ Todo:<br />
 -A slider for the volume moment ✅ <br />
 -Make the music being user's choice ✅ <br />
 -Music loop button system ✅ <br />
--Playlists system ❌ <br />
+-Playlists system (on work) ❌ <br />
 
 Less important:<br />
 -Upgrade UI<br />
