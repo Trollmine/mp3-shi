@@ -1,5 +1,6 @@
-# Mp3-shi V14:
+# Mp3-shi V15:
 import threading
+
 import customtkinter
 from tkinter import filedialog
 from PIL import Image
@@ -19,6 +20,13 @@ loopIconsPath = os.path.join(imagesPath, "LoopIcon")
 playlists = {
 }
 
+config.read(configPath)
+for playlist in config["playlists"]:
+    songslist = config["playlists"][playlist].split(",")
+    del songslist[-1]
+    playlists[playlist] = songslist
+
+print(playlists)
 """
 config.read(configPath)
 for playlist in playlists:
@@ -201,12 +209,24 @@ def create_playlist(button, name):
     global new_playlist_songs_list
     global playlists
 
+    name = name.removesuffix("\n")
+
     playlists[name] = new_playlist_songs_list
-
     button.destroy()
-    new_playlist_songs_list = []
-    print(new_playlist_songs_list, playlists)
 
+    config.read(configPath)
+    songs = ""
+    for song in new_playlist_songs_list:
+        print(song)
+        songs += str(song) + ","
+    print(songs)
+    config.set("playlists", name, songs)
+
+    with open(configPath, 'w') as configfile:
+        config.write(configfile)
+    print(playlists)
+    
+    new_playlist_songs_list = []
 
 def select_songs_to_create_playlist():
     open_window("Create playlist")
@@ -357,7 +377,16 @@ def open_window(name):
         scrollingFrame.grid(row=1, padx=20, pady=5, sticky="ew")
         newWindow.grid_rowconfigure(1, weight=1)
         newWindow.geometry("600x450")
-        playlist_name_textbox = customtkinter.CTkTextbox(master=newWindow, height=50, text_color=mainText_color, activate_scrollbars=False, scrollbar_button_hover_color=hover_bars_color, scrollbar_button_color=main_bars_color, fg_color=clickable_color, font=("",20))
+        playlist_name_textbox = customtkinter.CTkTextbox(master=newWindow,
+                                                         height=50,
+                                                         text_color=mainText_color,
+                                                         activate_scrollbars=False,
+                                                         scrollbar_button_hover_color=hover_bars_color,
+                                                         scrollbar_button_color=main_bars_color,
+                                                         fg_color=clickable_color,
+                                                         font=("",20),
+                                                         wrap="none"
+                                                         )
         playlist_name_textbox.grid(row=0, padx=20, pady=10, sticky="ewn")
 
         playlist_done_button = customtkinter.CTkButton(master=newWindow, height=50, text_color=mainText_color, text="Done", fg_color=clickable_color, hover_color=main_hover_color, font=("",20))
