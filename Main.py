@@ -269,7 +269,8 @@ def select_song(button, songname):
         new_playlist_songs_list += [songname]
     else:
         button.configure(fg_color=unselected_color, hover_color=unselected_hover_color, text_color=unselected_text_color)
-        new_playlist_songs_list -= [songname]
+        new_playlist_songs_list.remove(songname)
+    print(new_playlist_songs_list)
 
 def refresh_timePlayed(elapsedTime, isSlider):
     global timePlayed, lastPlayed
@@ -360,6 +361,8 @@ def prev_music():
             playingSong -= 1
         elif playingSong == 0:
             playingSong = songsCount - 1
+        elif playingSong == -1:
+            playingSong = 0
 
         init_music(False)
 
