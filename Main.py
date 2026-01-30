@@ -20,6 +20,8 @@ loopIconsPath = os.path.join(imagesPath, "LoopIcon")
 playlists = {
 }
 
+current_playlist = ""
+
 config.read(configPath)
 for playlist in config["playlists"]:
     songslist = config["playlists"][playlist].split(",")
@@ -27,18 +29,6 @@ for playlist in config["playlists"]:
     playlists[playlist] = songslist
 
 print(playlists)
-"""
-config.read(configPath)
-for playlist in playlists:
-    songs = ""
-    for song in playlists[playlist]:
-        songs += str(song) + ","
-    print(playlist)
-    config.set("playlists", playlist, songs)
-
-with open(configPath, 'w') as configfile:
-    config.write(configfile)
-"""
 
 loopIconsList = {
     0 : ["noLoopLight.png", "noLoopDark.png"],
@@ -204,12 +194,51 @@ def choose_directory():
             text="your songs folder is " + config.get('path_directory', 'path') + " and you have " + str(
                 songsCount) + " songs in this folder")
 
+def set_playing_playlist(playlist):
+    global current_playlist
+    global songsCount
+    if current_playlist == playlists[playlist]:
+        current_playlist = None
+        songsCount = len(filesList)
+    else:
+        current_playlist = playlists[playlist]
+        songsCount = len(current_playlist)
+    init_music(0)
+
+    print(filesList, current_playlist)
+
+def refresh_playlists(frame):
+
+    for widget in frame.winfo_children():
+        widget.destroy()
+
+    for index, playlist in enumerate(playlists):
+        name = playlist
+        print(name, len(name))
+        if len(name) > 20:
+            name = name[:20] + "..."
+
+        new_playlist_frame = customtkinter.CTkFrame(frame, fg_color=clickable_color, height=40)
+        new_playlist_frame.grid(row=index, padx=20, pady=10, sticky="ew")
+        new_playlist_frame.columnconfigure(0, weight=1)
+
+        new_playlist_title = customtkinter.CTkLabel(new_playlist_frame, text_color=mainText_color, fg_color="transparent", text=name, width=100, wraplength=100)
+        new_playlist_title.grid(row=0, column=0, padx=5, pady=0, sticky="w")
+
+        new_playlist_play_button = customtkinter.CTkButton(new_playlist_frame, text_color=mainText_color, hover_color=main_hover_color, fg_color=clickable_color, text="LOAD")
+        new_playlist_play_button.configure(command=lambda p=playlist: set_playing_playlist(playlist))
+        new_playlist_play_button.grid(row=0, column=1, padx=5, pady=0, sticky="ew")
+
 new_playlist_songs_list = []
 def create_playlist(button, name):
     global new_playlist_songs_list
     global playlists
 
-    name = name.removesuffix("\n")
+    print(len(name))
+    if name=="" or len(name)==1:
+        return
+
+    name = name.replace("\n","")
 
     playlists[name] = new_playlist_songs_list
     button.destroy()
@@ -233,14 +262,14 @@ def select_songs_to_create_playlist():
 
     print("creating playlist")
 
-def select_song(button, songnum):
+def select_song(button, songname):
     global new_playlist_songs_list
     if button.cget("fg_color") == unselected_color:
         button.configure(fg_color=selected_color, hover_color=selected_hover_color, text_color=selected_text_color)
-        new_playlist_songs_list += [songnum]
+        new_playlist_songs_list += [songname]
     else:
         button.configure(fg_color=unselected_color, hover_color=unselected_hover_color, text_color=unselected_text_color)
-        new_playlist_songs_list -= [songnum]
+        new_playlist_songs_list -= [songname]
 
 def refresh_timePlayed(elapsedTime, isSlider):
     global timePlayed, lastPlayed
@@ -277,18 +306,17 @@ def init_music(song):
     if type(song) == int:
         playingSong = song
 
-    #print(song, playingSong)
-
-    pygame.mixer.music.load(os.path.join(filesDirectory, filesList[playingSong]))
+    song = current_playlist[playingSong] if current_playlist else filesList[playingSong]
+    pygame.mixer.music.load(os.path.join(filesDirectory, song))
     pygame.mixer.music.play()
     playButton.configure(text="PAUSE")
     paused = False
     timePlayed = 0
     slider_time.set(0)
-    music_time = MP3(os.path.join(filesDirectory, filesList[playingSong])).info.length
+    music_time = MP3(os.path.join(filesDirectory, song)).info.length
     slider_time.configure(to=music_time, state="normal")
     timer_end_text.configure(text="%02d:%02d" % (music_time // 60, music_time - (music_time // 60) * 60))
-    musicTitle.configure(text=("[", playingSong+1, "]", filesList[playingSong]))
+    musicTitle.configure(text=("[", playingSong+1, "]", song))
     refresh_timePlayed(0, False)
 
 def play_music():
@@ -395,7 +423,7 @@ def open_window(name):
 
         for index, file in enumerate(os.listdir(filesDirectory)):
             button = customtkinter.CTkButton(master=scrollingFrame, text=file.lower(), height=40, fg_color=unselected_color, hover_color=main_hover_color, text_color=mainText_color)
-            button.configure(command=lambda b=button,i=index: select_song(b, i))
+            button.configure(command=lambda b=button,f=file: select_song(b, f))
             button.grid(row=index, padx=20, pady=10, sticky="ew")
 
     elif name == "Playlists":
@@ -408,6 +436,8 @@ def open_window(name):
             print("not empty")
         else:
             print("empty")
+
+        refresh_playlists(scrollingFrame)
 
     Windows.insert(len(Windows), newWindow)
 
@@ -432,21 +462,22 @@ def refresh_thread():
         elif not paused:
             # print("finished")
             pygame.mixer.music.unload()
-            if loopMode == 0:
-                pygame.mixer.music.load(os.path.join(filesDirectory, filesList[playingSong]))
-                slider_time.configure(to=MP3(os.path.join(filesDirectory, filesList[playingSong])).info.length,state="normal")
+            if loopMode == 0: # doesn't loop
+                song = current_playlist[playingSong] if current_playlist else filesList[playingSong]
+                pygame.mixer.music.load(os.path.join(filesDirectory, song))
+                slider_time.configure(to=MP3(os.path.join(filesDirectory, song)).info.length,state="normal")
                 pygame.mixer.music.play()
                 pygame.mixer.music.pause()
                 playButton.configure(text="PLAY")
                 slider_time.set(0)
                 timePlayed = 0
                 paused = True
-            elif loopMode == 1:
+            elif loopMode == 1: # loop one song infinitely
                 init_music(False)
                 playButton.configure(text="PAUSE")
                 timePlayed = 0
                 paused = False
-            elif loopMode == 2:
+            elif loopMode == 2: # loop all playlist's songs
                 if songsCount > 1:
                     next_music()
                     playButton.configure(text="PAUSE")
@@ -457,7 +488,7 @@ def refresh_thread():
                     playButton.configure(text="PAUSE")
                     timePlayed = 0
                     paused = False
-            elif loopMode == 3:
+            elif loopMode == 3: # loop all playlist's songs randomly
                 if songsCount > 1:
                     randNum = random.randint(0,len(filesList)-1)
                     while randNum == playingSong:
