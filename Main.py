@@ -198,14 +198,12 @@ def set_playing_playlist(playlist):
     global current_playlist
     global songsCount
     if current_playlist == playlists[playlist]:
-        current_playlist = None
+        current_playlist = ""
         songsCount = len(filesList)
     else:
         current_playlist = playlists[playlist]
         songsCount = len(current_playlist)
     init_music(0)
-
-    print(filesList, current_playlist)
 
 def refresh_playlists(frame):
 
@@ -214,7 +212,6 @@ def refresh_playlists(frame):
 
     for index, playlist in enumerate(playlists):
         name = playlist
-        print(name, len(name))
         if len(name) > 20:
             name = name[:20] + "..."
 
@@ -234,7 +231,6 @@ def create_playlist(button, name):
     global new_playlist_songs_list
     global playlists
 
-    print(len(name))
     if name=="" or len(name)==1:
         return
 
@@ -246,21 +242,16 @@ def create_playlist(button, name):
     config.read(configPath)
     songs = ""
     for song in new_playlist_songs_list:
-        print(song)
         songs += str(song) + ","
-    print(songs)
     config.set("playlists", name, songs)
 
     with open(configPath, 'w') as configfile:
         config.write(configfile)
-    print(playlists)
-    
+
     new_playlist_songs_list = []
 
 def select_songs_to_create_playlist():
     open_window("Create playlist")
-
-    print("creating playlist")
 
 def select_song(button, songname):
     global new_playlist_songs_list
@@ -270,7 +261,6 @@ def select_song(button, songname):
     else:
         button.configure(fg_color=unselected_color, hover_color=unselected_hover_color, text_color=unselected_text_color)
         new_playlist_songs_list.remove(songname)
-    print(new_playlist_songs_list)
 
 def refresh_timePlayed(elapsedTime, isSlider):
     global timePlayed, lastPlayed
