@@ -24,7 +24,7 @@ playlists = {
 
 current_playlist = ""
 
-config.read(configPath)
+config.read(configPath, encoding="utf-8")
 for playlist in config["playlists"]:
     songslist = config["playlists"][playlist].split(",")
     del songslist[-1]
@@ -144,7 +144,7 @@ info_label.grid(padx=20, pady=20)
 
 pygame.mixer.init()
 
-config.read(configPath)
+config.read(configPath, encoding="utf-8")
 if config.get('path_directory', 'path') == "none" or not config.get('path_directory', 'path') or not os.path.exists(config.get('path_directory', 'path')) :
     info_label.configure(text="No songs folder selected, or not found, select one in the settings menu")
 else:
@@ -161,7 +161,7 @@ if int(config.get('QOL', 'loop_mode')) != 0:
     loopImage.configure(light_image=Image.open(os.path.join(loopIconsPath, loopIconsList[loopMode][0])), dark_image=Image.open(os.path.join(loopIconsPath, loopIconsList[loopMode][1])))
 
 def change_color_mode():
-    config.read(configPath)
+    config.read(configPath, encoding="utf-8")
     if customtkinter.get_appearance_mode() == "Light":
         customtkinter.set_appearance_mode("Dark")
         app.iconbitmap(appIcon[customtkinter.get_appearance_mode()])
@@ -170,7 +170,7 @@ def change_color_mode():
         customtkinter.set_appearance_mode("Light")
         config.set('QOL', 'dark_mode', "disabled")
     app.iconbitmap(appIcon[customtkinter.get_appearance_mode()])
-    with open(configPath, 'w') as configfile:
+    with open(configPath, 'w', encoding="utf-8") as configfile:
         config.write(configfile)
 
 if config.get('QOL', 'dark_mode') == "enabled":
@@ -197,9 +197,9 @@ def choose_directory(window):
 
     window.destroy()
 
-    config.read(configPath)
+    config.read(configPath, encoding="utf-8")
     config.set('path_directory', 'path', filesDirectory)
-    with open(configPath, 'w') as configfile:
+    with open(configPath, 'w', encoding="utf-8") as configfile:
         config.write(configfile)
 
     if filesDirectory:
@@ -250,10 +250,9 @@ def refresh_playlists(frame):
 
 new_playlist_songs_list = []
 def create_playlist(button, name):
-    global new_playlist_songs_list
-    global playlists
+    global new_playlist_songs_list, playlists
 
-    if name=="" or len(name)==1:
+    if name=="" or len(name)==1 or len(new_playlist_songs_list)<=1:
         return
 
     name = name.replace("\n","")
@@ -261,13 +260,13 @@ def create_playlist(button, name):
     playlists[name] = new_playlist_songs_list
     button.destroy()
 
-    config.read(configPath)
+    config.read(configPath, encoding="utf-8")
     songs = ""
     for song in new_playlist_songs_list:
         songs += str(song) + ","
     config.set("playlists", name, songs)
 
-    with open(configPath, 'w') as configfile:
+    with open(configPath, 'w', encoding="utf-8") as configfile:
         config.write(configfile)
 
     new_playlist_songs_list = []
@@ -311,7 +310,7 @@ def change_loop_mode():
         loopMode += 1
     loopImage.configure(light_image=Image.open(os.path.join(loopIconsPath, loopIconsList[loopMode][0])), dark_image=Image.open(os.path.join(loopIconsPath, loopIconsList[loopMode][1])))
     config.set('QOL', 'loop_mode', str(loopMode))
-    with open(configPath, 'w') as configfile:
+    with open(configPath, 'w', encoding="utf-8") as configfile:
         config.write(configfile)
 
 def init_music(song):
