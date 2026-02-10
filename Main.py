@@ -1,4 +1,4 @@
-# Mp3-shi V15:
+# Mp3-shi V16:
 import threading
 
 import customtkinter
@@ -39,6 +39,11 @@ loopIconsList = {
     3 : ["loopRandomLight.png", "loopRandomDark.png"],
 }
 
+appIcon = {
+    "Light" : os.path.join(appIconsPath, "NoBGIconLight.ico"),
+    "Dark"  : os.path.join(appIconsPath, "NoBGIcon.ico"),
+}
+
 mainText_color       = ("#ffedd3", "#bdd0ff")
 mainBackground_color = ("#ffd59a", "#4a536b")
 foreground_color     = ("#ffc26c", "#40485d")
@@ -59,7 +64,6 @@ app.title("MP3-SHI")
 app.geometry("960x540")
 app.minsize(540, 540)
 app.toplevel_window = None
-app.iconbitmap(os.path.join(appIconsPath, "NoBGIcon.ico"))
 
 filesDirectory = ""
 filesList      = []
@@ -160,17 +164,21 @@ def change_color_mode():
     config.read(configPath)
     if customtkinter.get_appearance_mode() == "Light":
         customtkinter.set_appearance_mode("Dark")
+        app.iconbitmap(appIcon[customtkinter.get_appearance_mode()])
         config.set('QOL', 'dark_mode', "enabled")
     else:
         customtkinter.set_appearance_mode("Light")
         config.set('QOL', 'dark_mode', "disabled")
+    app.iconbitmap(appIcon[customtkinter.get_appearance_mode()])
     with open(configPath, 'w') as configfile:
         config.write(configfile)
 
 if config.get('QOL', 'dark_mode') == "enabled":
     customtkinter.set_appearance_mode("dark")
+    app.iconbitmap(appIcon[customtkinter.get_appearance_mode()])
 else:
     customtkinter.set_appearance_mode("light")
+    app.iconbitmap(appIcon[customtkinter.get_appearance_mode()])
 
 def choose_song():
     if filesDirectory and songsCount > 0:
@@ -404,10 +412,12 @@ def open_window(name):
         darkModeButton.grid(row=1, padx=20, pady=10, sticky="ew")
 
     elif name == "Songs": # Shows all songs from the current selected directory
+        realindex = 0
         for index, file in enumerate(os.listdir(filesDirectory)):
             if not file.endswith(songFormats): continue
-            button = customtkinter.CTkButton(master=scrollingFrame, text=file.lower(), height=40, fg_color=clickable_color, hover_color=main_hover_color, command=lambda i=index: init_music(i), text_color=mainText_color)
-            button.grid(row=index, padx=20, pady=10, sticky="ew")
+            button = customtkinter.CTkButton(master=scrollingFrame, text=pygame.mixer.music.get_metadata(os.path.join(filesDirectory, file))["title"] if pygame.mixer.music.get_metadata(os.path.join(filesDirectory, file))["title"] else os.path.splitext(file)[0], height=40, fg_color=clickable_color, hover_color=main_hover_color, command=lambda i=realindex: init_music(i), text_color=mainText_color)
+            button.grid(row=realindex, padx=20, pady=10, sticky="ew")
+            realindex += 1
 
     elif name == "Create playlist":
         scrollingFrame.configure(height=250)
@@ -432,7 +442,7 @@ def open_window(name):
 
         for index, file in enumerate(os.listdir(filesDirectory)):
             if not file.endswith(songFormats): continue
-            button = customtkinter.CTkButton(master=scrollingFrame, text=file.lower(), height=40, fg_color=unselected_color, hover_color=main_hover_color, text_color=mainText_color)
+            button = customtkinter.CTkButton(master=scrollingFrame, text=pygame.mixer.music.get_metadata(os.path.join(filesDirectory, file))["title"] if pygame.mixer.music.get_metadata(os.path.join(filesDirectory, file))["title"] else os.path.splitext(file)[0], height=40, fg_color=unselected_color, hover_color=main_hover_color, text_color=mainText_color)
             button.configure(command=lambda b=button,f=file: select_song(b, f))
             button.grid(row=index, padx=20, pady=10, sticky="ew")
 
