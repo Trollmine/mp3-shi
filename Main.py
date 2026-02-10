@@ -329,7 +329,7 @@ def init_music(song):
     music_time = File(os.path.join(filesDirectory, song)).info.length
     slider_time.configure(to=music_time, state="normal")
     timer_end_text.configure(text="%02d:%02d" % (music_time // 60, music_time - (music_time // 60) * 60))
-    musicTitle.configure(text=("[", playingSong + 1, "]", pygame.mixer.music.get_metadata()["title"] if pygame.mixer.music.get_metadata()["title"] else os.path.splitext(song)[0]))
+    musicTitle.configure(text=("[" + str(playingSong + 1) + "] " + (pygame.mixer.music.get_metadata()["title"] if pygame.mixer.music.get_metadata()["title"] else os.path.splitext(song)[0])))
     refresh_timePlayed(0, False)
 
 def play_music():
