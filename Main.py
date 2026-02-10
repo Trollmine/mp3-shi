@@ -462,6 +462,13 @@ def open_window(name):
     Windows.insert(len(Windows), newWindow)
 
 playButton.configure(command=play_music)
+app.bind("<space>", lambda e: play_music())
+app.bind("<Right>", lambda e: next_music())
+app.bind("<KeyPress-d>", lambda e: next_music())
+app.bind("<KeyPress-D>", lambda e: next_music())
+app.bind("<Left>", lambda e: prev_music())
+app.bind("<KeyPress-q>", lambda e: prev_music())
+app.bind("<KeyPress-Q>", lambda e: prev_music())
 
 openSettingsButton.configure(command=lambda: open_window("Settings"))
 openMusicButton.configure(command=lambda: open_window("Songs"))
