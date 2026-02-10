@@ -68,6 +68,8 @@ playingSong    = -1   # -1 means there is no playing songs, otherwise the playin
 loopMode       = 0    # 0= doesn't loop, 1= loop the same song, 2= loop all songs, 3= loop all songs randomly,
 paused         = True
 
+songFormats = (".mp3", ".wav", ".ogg", ".flac", ".mid", ".midi")
+
 timePlayed = 0
 lastPlayed = 0
 
@@ -143,7 +145,9 @@ if config.get('path_directory', 'path') == "none" or not config.get('path_direct
     info_label.configure(text="No songs folder selected, or not found, select one in the settings menu")
 else:
     filesDirectory = config.get('path_directory', 'path')
-    filesList      = os.listdir(filesDirectory)
+    for file in os.listdir(filesDirectory):
+        if file.endswith(songFormats):
+            filesList.append(file)
     songsCount     = len(filesList)
     pygame.mixer.music.load(os.path.join(filesDirectory, filesList[0]))
     info_label.configure(text="your songs folder is " + config.get('path_directory', 'path') + " and you have " + str(songsCount) + " songs in this folder")
@@ -195,7 +199,7 @@ def choose_directory(window):
         filesList = []
 
         for file in secondFilesList:
-            if file.lower().endswith((".mp3", ".wav", ".ogg", ".flac", ".mid", ".midi")):
+            if file.lower().endswith(songFormats):
                 filesList += [file]
 
         pygame.mixer.music.load(os.path.join(filesDirectory, filesList[0]))
@@ -401,6 +405,7 @@ def open_window(name):
 
     elif name == "Songs": # Shows all songs from the current selected directory
         for index, file in enumerate(os.listdir(filesDirectory)):
+            if not file.endswith(songFormats): continue
             button = customtkinter.CTkButton(master=scrollingFrame, text=file.lower(), height=40, fg_color=clickable_color, hover_color=main_hover_color, command=lambda i=index: init_music(i), text_color=mainText_color)
             button.grid(row=index, padx=20, pady=10, sticky="ew")
 
@@ -426,6 +431,7 @@ def open_window(name):
         playlist_done_button.grid(row=2, padx=20, pady=10, sticky="ewns")
 
         for index, file in enumerate(os.listdir(filesDirectory)):
+            if not file.endswith(songFormats): continue
             button = customtkinter.CTkButton(master=scrollingFrame, text=file.lower(), height=40, fg_color=unselected_color, hover_color=main_hover_color, text_color=mainText_color)
             button.configure(command=lambda b=button,f=file: select_song(b, f))
             button.grid(row=index, padx=20, pady=10, sticky="ew")
