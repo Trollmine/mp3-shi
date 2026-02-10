@@ -3,8 +3,9 @@ import threading
 
 import customtkinter
 from tkinter import filedialog
+
 from PIL import Image
-from mutagen.mp3 import MP3
+from mutagen import File
 import pygame
 import random
 import os
@@ -185,7 +186,7 @@ def choose_directory():
         filesList = []
 
         for file in secondFilesList:
-            if file.lower().endswith((".mp3", ".wav", ".ogg")):
+            if file.lower().endswith((".mp3", ".wav", ".ogg", "")):
                 filesList += [file]
 
         pygame.mixer.music.load(os.path.join(filesDirectory, filesList[0]))
@@ -304,7 +305,7 @@ def init_music(song):
     paused = False
     timePlayed = 0
     slider_time.set(0)
-    music_time = MP3(os.path.join(filesDirectory, song)).info.length
+    music_time = File(os.path.join(filesDirectory, song)).info.length
     slider_time.configure(to=music_time, state="normal")
     timer_end_text.configure(text="%02d:%02d" % (music_time // 60, music_time - (music_time // 60) * 60))
     musicTitle.configure(text=("[", playingSong+1, "]", song))
@@ -458,7 +459,7 @@ def refresh_thread():
             if loopMode == 0: # doesn't loop
                 song = current_playlist[playingSong] if current_playlist else filesList[playingSong]
                 pygame.mixer.music.load(os.path.join(filesDirectory, song))
-                slider_time.configure(to=MP3(os.path.join(filesDirectory, song)).info.length,state="normal")
+                slider_time.configure(to=File(os.path.join(filesDirectory, song)).info.length)
                 pygame.mixer.music.play()
                 pygame.mixer.music.pause()
                 playButton.configure(text="PLAY")
