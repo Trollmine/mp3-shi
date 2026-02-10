@@ -1,4 +1,4 @@
-customtkinter==5.2.2
-mutagen==1.47.0
-Pillow==12.1.0
-pygame==2.1.2
+customtkinter
+mutagen
+Pillow
+pygame-ce
