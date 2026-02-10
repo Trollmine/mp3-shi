@@ -1,4 +1,4 @@
-# Mp3-shi V16:
+# Mp3-shi V17:
 import threading
 
 import customtkinter
@@ -26,7 +26,7 @@ current_playlist = ""
 
 config.read(configPath, encoding="utf-8")
 for playlist in config["playlists"]:
-    songslist = config["playlists"][playlist].split(",")
+    songslist = config["playlists"][playlist].split("/")
     del songslist[-1]
     playlists[playlist] = songslist
 
@@ -219,6 +219,7 @@ def choose_directory(window):
 def set_playing_playlist(playlist):
     global current_playlist
     global songsCount
+    print(playlist)
     if current_playlist == playlists[playlist]:
         current_playlist = ""
         songsCount = len(filesList)
@@ -245,7 +246,7 @@ def refresh_playlists(frame):
         new_playlist_title.grid(row=0, column=0, padx=5, pady=0, sticky="w")
 
         new_playlist_play_button = customtkinter.CTkButton(new_playlist_frame, text_color=mainText_color, hover_color=main_hover_color, fg_color=clickable_color, text="LOAD")
-        new_playlist_play_button.configure(command=lambda p=playlist: set_playing_playlist(playlist))
+        new_playlist_play_button.configure(command=lambda p=playlist: set_playing_playlist(p))
         new_playlist_play_button.grid(row=0, column=1, padx=5, pady=0, sticky="ew")
 
 new_playlist_songs_list = []
@@ -263,7 +264,7 @@ def create_playlist(button, name):
     config.read(configPath, encoding="utf-8")
     songs = ""
     for song in new_playlist_songs_list:
-        songs += str(song) + ","
+        songs += str(song) + "/"
     config.set("playlists", name, songs)
 
     with open(configPath, 'w', encoding="utf-8") as configfile:
