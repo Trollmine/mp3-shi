@@ -1,4 +1,4 @@
-# Mp3-shi V17:
+# Mp3-shi V16:
 import threading
 
 import customtkinter
@@ -510,9 +510,9 @@ def refresh_thread():
                     paused = False
             elif loopMode == 3: # loop all playlist's songs randomly
                 if songsCount > 1:
-                    randNum = random.randint(0,len(filesList)-1)
+                    randNum = random.randint(0,len(current_playlist)-1 if current_playlist else len(filesList)-1)
                     while randNum == playingSong:
-                        randNum = random.randint(0,len(filesList)-1)
+                        randNum = random.randint(0,len(current_playlist)-1 if current_playlist else len(filesList)-1)
                     playingSong = randNum
                     init_music(False)
                     playButton.configure(text="PAUSE")
