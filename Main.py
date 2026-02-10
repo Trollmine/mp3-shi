@@ -17,6 +17,7 @@ config = configparser.ConfigParser()
 configPath    = os.path.join("Dependencies", "config.ini")
 imagesPath    = os.path.join("Dependencies", "Images")
 loopIconsPath = os.path.join(imagesPath, "LoopIcon")
+appIconsPath  = os.path.join(imagesPath, "AppIcon")
 
 playlists = {
 }
@@ -58,6 +59,7 @@ app.title("MP3-SHI")
 app.geometry("960x540")
 app.minsize(540, 540)
 app.toplevel_window = None
+app.iconbitmap(os.path.join(appIconsPath, "NoBGIcon.ico"))
 
 filesDirectory = ""
 filesList      = []
@@ -186,7 +188,7 @@ def choose_directory():
         filesList = []
 
         for file in secondFilesList:
-            if file.lower().endswith((".mp3", ".wav", ".ogg", "")):
+            if file.lower().endswith((".mp3", ".wav", ".ogg", ".flac", ".mid", ".midi")):
                 filesList += [file]
 
         pygame.mixer.music.load(os.path.join(filesDirectory, filesList[0]))
@@ -308,7 +310,7 @@ def init_music(song):
     music_time = File(os.path.join(filesDirectory, song)).info.length
     slider_time.configure(to=music_time, state="normal")
     timer_end_text.configure(text="%02d:%02d" % (music_time // 60, music_time - (music_time // 60) * 60))
-    musicTitle.configure(text=("[", playingSong+1, "]", song))
+    musicTitle.configure(text=("[", playingSong + 1, "]", pygame.mixer.music.get_metadata()["title"] if pygame.mixer.music.get_metadata()["title"] else os.path.splitext(song)[0]))
     refresh_timePlayed(0, False)
 
 def play_music():
