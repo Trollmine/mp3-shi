@@ -1,6 +1,6 @@
 # mp3-shi
 
-Todo:<br />
+**Todo:**<br />
 -Read mp3 files ✅<br />
 -Read other audio files ✅<br />
 -Make prototype UI (With Tkinter) ✅<br />
@@ -17,3 +17,9 @@ Less important:<br />
 -Upgrade UI<br />
 -Automatic way to get the song infos (API)<br />
 -Make a visualizer<br />
+
+## Instalation
+
+-Go in "main" folder<br />
+-Run `pip install -r requirements.txt`<br />
+-Run `python Main.py` 
