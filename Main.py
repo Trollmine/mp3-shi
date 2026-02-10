@@ -172,12 +172,19 @@ def choose_song():
     if filesDirectory and songsCount > 0:
         open_window("CHOOSE A SONG")
 
-def choose_directory():
+def choose_directory(window):
     global filesDirectory, filesList, songsCount
+
+    #window.lower()
+    #window.focus_force()
+    window.attributes("-topmost", False)
 
     filesDirectory = filedialog.askdirectory(
         title="Choose your songs folder"
     )
+
+    window.destroy()
+
     config.read(configPath)
     config.set('path_directory', 'path', filesDirectory)
     with open(configPath, 'w') as configfile:
@@ -385,7 +392,8 @@ def open_window(name):
     scrollingFrame.grid(padx=10, pady=10, column=0, row=0, sticky="ewns")
     scrollingFrame.grid_columnconfigure(0, weight=1)
     if name == "Settings":
-        changeDirectoryButton = customtkinter.CTkButton(master=scrollingFrame, text="SELECT DIRECTORY", height=40, text_color=mainText_color, command=choose_directory, fg_color=clickable_color, hover_color=main_hover_color)
+        changeDirectoryButton = customtkinter.CTkButton(master=scrollingFrame, text="SELECT DIRECTORY", height=40, text_color=mainText_color, fg_color=clickable_color, hover_color=main_hover_color)
+        changeDirectoryButton.configure(command=lambda :choose_directory(newWindow))
         changeDirectoryButton.grid(row=0, padx=20, pady=10, sticky="ew")
 
         darkModeButton = customtkinter.CTkButton(master=scrollingFrame, text="LIGHT/DARK MODE", height=40, text_color=mainText_color, command=change_color_mode, fg_color=clickable_color, hover_color=main_hover_color)
