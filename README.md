@@ -11,15 +11,15 @@
 -A slider for the volume moment ✅ <br />
 -Make the music being user's choice ✅ <br />
 -Music loop button system ✅ <br />
--Playlists system (on work) ❌ <br />
+-Playlists system (finished but still needs polishing) ✅❌ <br />
 
-Less important:<br />
--Upgrade UI<br />
--Automatic way to get the song infos (API)<br />
--Make a visualizer<br />
+Less important: <br />
+-Upgrade UI ✅ <br />
+-Way to get the song infos (metadatas) ✅ <br />
+-Make a visualizer <br />
 
 ## Instalation
 
--Go in "main" folder<br />
--Run `pip install -r requirements.txt`<br />
--Run `python Main.py` 
+-Go in "main" folder <br />
+-Run `pip install -r requirements.txt` <br />
+-Run `python Main.py`
