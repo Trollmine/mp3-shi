@@ -81,7 +81,7 @@ lastPlayed = 0
 app.grid_columnconfigure(0, weight=1)
 
 musicTitle = customtkinter.CTkLabel(app, text="", font=("", 50), text_color=mainText_color)
-musicTitle.grid(row=0, padx=20, pady=5, sticky="ewn")
+musicTitle.grid(row=0, padx=20, pady=(20,0), sticky="ewn")
 
 playlistTitle = customtkinter.CTkLabel(app, text="", font=("", 20), text_color=mainText_color)
 playlistTitle.grid(row=1, padx=20, pady=0, sticky="ewn")
@@ -93,7 +93,7 @@ topFrame.grid_columnconfigure(0, weight=1)
 
 # sliderFrame in topFrame part
 sliderFrame = customtkinter.CTkFrame(topFrame, fg_color="transparent")
-sliderFrame.grid(row=0, padx= 20, pady= 5, sticky="ew")
+sliderFrame.grid(row=0, padx= 20, pady= (5,0), sticky="ew")
 sliderFrame.grid_columnconfigure(1, weight=1)
 
 timer_text  = customtkinter.CTkLabel(sliderFrame, width=10, height=20, text="00:00", text_color=mainText_color, font=("", 20))
@@ -108,20 +108,20 @@ slider_time.grid(row=0, column=1, padx=10, pady=20, sticky="ewn")
 
 # TopFrame in topFrame part
 very_topFrame = customtkinter.CTkFrame(topFrame, fg_color="transparent", height=50)
-very_topFrame.grid(row=1, padx=20, pady=0)
+very_topFrame.grid(row=1, padx=20, pady=(10,5))
 
 openMusicButton = customtkinter.CTkButton(very_topFrame, text="CHOOSE A FILE", fg_color=clickable_color, hover_color=main_hover_color, text_color=mainText_color, width=100)
-openMusicButton.grid(padx=10, pady=10, row=0, column=0, sticky="ew")
+openMusicButton.grid(padx=10, pady=0, row=0, column=0, sticky="ew")
 
 playlistButton = customtkinter.CTkButton(very_topFrame, text="PLAYLISTS", fg_color=clickable_color, hover_color=main_hover_color, text_color=mainText_color, width=100)
-playlistButton.grid(padx=10, pady=10, row=0, column=1, sticky="ew")
+playlistButton.grid(padx=10, pady=0, row=0, column=1, sticky="ew")
 
 openSettingsButton = customtkinter.CTkButton(very_topFrame, text="SETTINGS", fg_color=clickable_color, hover_color=main_hover_color, text_color=mainText_color, width=100)
-openSettingsButton.grid(padx=10, pady=10, row=0, column=2, sticky="ew")
+openSettingsButton.grid(padx=10, pady=0, row=0, column=2, sticky="ew")
 
 # playFrame in topFrame part
 playFrame = customtkinter.CTkFrame(topFrame, fg_color=foreground_color)
-playFrame.grid(row=2, padx= 20, pady= 5, sticky="ewns")
+playFrame.grid(row=2, padx= 20, pady= (0,5), sticky="ewns")
 playFrame.grid_columnconfigure(1, weight=1)
 
 previousButton = customtkinter.CTkButton(playFrame, text="<", width=75, height=75, text_color=mainText_color, fg_color=clickable_color, hover_color=main_hover_color, font=("", 60))
@@ -272,8 +272,10 @@ def delete_playlist(playlist, playlist_canva):
 
     print(playlist)
 
+    if current_playlist == playlists[playlist]:
+        set_playing_playlist("")
+
     playlists.pop(playlist)
-    set_playing_playlist("")
 
     config.remove_option("playlists", playlist)
 
@@ -295,14 +297,18 @@ def refresh_playlists(frame):
         new_playlist_frame = customtkinter.CTkFrame(frame, fg_color=background_color)
         new_playlist_frame.grid(row=index, padx=20, pady=5, sticky="ew")
         new_playlist_frame.grid_columnconfigure(0, weight=1)
+        new_playlist_frame.grid_rowconfigure(0, weight=1)
+        new_playlist_frame.grid_rowconfigure(1, weight=1)
+
+        print(new_playlist_frame.cget("width"))
 
         new_playlist_top_frame = customtkinter.CTkFrame(new_playlist_frame, fg_color=foreground_color, height=40)
         new_playlist_top_frame.grid(row=0, column=0, padx=5, pady=5, sticky="ew")
         new_playlist_top_frame.grid_columnconfigure(0, weight=1)
 
-        new_playlist_infos_button = customtkinter.CTkButton(new_playlist_frame, text_color=mainText_color,fg_color=clickable_color, hover_color=main_hover_color, text="", height=10, width=320)
+        new_playlist_infos_button = customtkinter.CTkButton(new_playlist_frame, text_color=mainText_color,fg_color=clickable_color, hover_color=main_hover_color, text="", height=10, anchor="center", width=new_playlist_frame.cget("width")*5)
         new_playlist_infos_button.configure(command=lambda p=playlist, f=new_playlist_frame, b=new_playlist_infos_button: show_playlist_songs(p, f, b))
-        new_playlist_infos_button.grid(row=1, column=0, padx=5, pady=5, sticky="ew")
+        new_playlist_infos_button.grid(row=1, column=0, padx=5, pady=5, sticky="w")
 
         new_playlist_title = customtkinter.CTkLabel(new_playlist_top_frame, text_color=mainText_color, fg_color="transparent", text=name, height=35)
         new_playlist_title.grid(row=0, column=0, padx=0, pady=0, sticky="ew")
@@ -513,7 +519,7 @@ def open_window(name):
             button.grid(row=index, padx=20, pady=10, sticky="ew")
 
     elif name == "Playlists":
-        newWindow.geometry("400x375")
+        newWindow.geometry("600x375")
         newWindow.grid_rowconfigure(0, weight=0)
         newWindow.grid_rowconfigure(1, weight=1)
         scrollingFrame.grid(row=1)
