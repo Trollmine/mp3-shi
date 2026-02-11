@@ -188,8 +188,6 @@ def choose_song():
 def choose_directory(window):
     global filesDirectory, filesList, songsCount
 
-    #window.lower()
-    #window.focus_force()
     window.attributes("-topmost", False)
 
     filesDirectory = filedialog.askdirectory(
@@ -240,17 +238,17 @@ def show_playlist_songs(playlist, playlist_frame, button):
     if button.grid_info()["row"] == 1:
         print(button.grid_info()["row"])
         for index, song in enumerate(playlist_songs):
-            title, album, artist, copyright = (
+            title, album, artist, time = (
                 pygame.mixer.music.get_metadata(os.path.join(filesDirectory, song))["title"],
                 pygame.mixer.music.get_metadata(os.path.join(filesDirectory, song))["album"],
                 pygame.mixer.music.get_metadata(os.path.join(filesDirectory, song))["artist"],
-                pygame.mixer.music.get_metadata(os.path.join(filesDirectory, song))["copyright"]
+                File(os.path.join(filesDirectory, song)).info.length
             )
             print(title, album, artist, copyright)
             song_title = customtkinter.CTkLabel(playlist_frame,
-                                                text='"' + title + '"' + " - " + album + " by " + artist
+                                                text='"' + title + '"' + " - " + album + " by " + artist + " (" + "%02d:%02d" % (time // 60, time - (time // 60) * 60) + ")"
                                                 if title
-                                                else os.path.splitext(song)[0],
+                                                else os.path.splitext(song)[0] + " (" + "%02d:%02d" % (time // 60, time - (time // 60) * 60) + ")" ,
                                                 text_color=mainText_color,
                                                 fg_color=foreground_color,
                                                 anchor="w",
