@@ -79,10 +79,12 @@ timePlayed = 0
 lastPlayed = 0
 
 app.grid_columnconfigure(0, weight=1)
-#app.grid_rowconfigure(1, weight=1)
 
 musicTitle = customtkinter.CTkLabel(app, text="", font=("", 50), text_color=mainText_color)
-musicTitle.grid(row=0, padx=20, pady=20, sticky="ewn")
+musicTitle.grid(row=0, padx=20, pady=5, sticky="ewn")
+
+playlistTitle = customtkinter.CTkLabel(app, text="", font=("", 20), text_color=mainText_color)
+playlistTitle.grid(row=1, padx=20, pady=0, sticky="ewn")
 
 # topFrame part
 topFrame = customtkinter.CTkFrame(app, fg_color=foreground_color)
@@ -216,15 +218,16 @@ def choose_directory(window):
                 songsCount) + " songs in this folder")
 
 def set_playing_playlist(playlist):
-    global current_playlist
-    global songsCount
+    global current_playlist, songsCount
     print(playlist)
     if playlist == "" or current_playlist == playlists[playlist]:
         current_playlist = ""
         songsCount = len(filesList)
+        playlistTitle.configure(text="")
     else:
         current_playlist = playlists[playlist]
         songsCount = len(current_playlist)
+        playlistTitle.configure(text=playlist)
     init_music(0)
 
 def show_playlist_songs(playlist, playlist_frame, button):
@@ -510,6 +513,9 @@ def open_window(name):
             button.grid(row=index, padx=20, pady=10, sticky="ew")
 
     elif name == "Playlists":
+        newWindow.geometry("400x375")
+        newWindow.grid_rowconfigure(0, weight=0)
+        newWindow.grid_rowconfigure(1, weight=1)
         scrollingFrame.grid(row=1)
         newWindow.grid_rowconfigure(1, weight=1)
         create_playlist_button = customtkinter.CTkButton(master=newWindow, text="NEW PLAYLIST", height=40, text_color=mainText_color, command=select_songs_to_create_playlist, fg_color=clickable_color, hover_color=main_hover_color)
