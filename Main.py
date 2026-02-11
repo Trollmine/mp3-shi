@@ -47,6 +47,7 @@ appIcon = {
 mainText_color       = ("#ffedd3", "#bdd0ff")
 mainBackground_color = ("#ffd59a", "#4a536b")
 foreground_color     = ("#ffc26c", "#40485d")
+background_color     = ("#eba748", "#2f384e")
 clickable_color      = ("#ffb246", "#3d538c")
 main_hover_color     = ("#d99739", "#2a3c6c")
 main_bars_color      = ("#ffdfb2", "#6a748e")
@@ -220,13 +221,65 @@ def set_playing_playlist(playlist):
     global current_playlist
     global songsCount
     print(playlist)
-    if current_playlist == playlists[playlist]:
+    if playlist == "" or current_playlist == playlists[playlist]:
         current_playlist = ""
         songsCount = len(filesList)
     else:
         current_playlist = playlists[playlist]
         songsCount = len(current_playlist)
     init_music(0)
+
+def show_playlist_songs(playlist, playlist_frame, button):
+    playlist_songs = playlists[playlist]
+    playlist_frame.winfo_children()
+    for child in playlist_frame.winfo_children():
+        print(child)
+        if isinstance(child, customtkinter.CTkLabel):
+            child.destroy()
+
+    if button.grid_info()["row"] == 1:
+        print(button.grid_info()["row"])
+        for index, song in enumerate(playlist_songs):
+            title, album, artist, copyright = (
+                pygame.mixer.music.get_metadata(os.path.join(filesDirectory, song))["title"],
+                pygame.mixer.music.get_metadata(os.path.join(filesDirectory, song))["album"],
+                pygame.mixer.music.get_metadata(os.path.join(filesDirectory, song))["artist"],
+                pygame.mixer.music.get_metadata(os.path.join(filesDirectory, song))["copyright"]
+            )
+            print(title, album, artist, copyright)
+            song_title = customtkinter.CTkLabel(playlist_frame,
+                                                text='"' + title + '"' + " - " + album + " by " + artist
+                                                if title
+                                                else os.path.splitext(song)[0],
+                                                text_color=mainText_color,
+                                                fg_color=foreground_color,
+                                                anchor="w",
+                                                padx=5,
+                                                )
+            song_title.grid(row=index + 1, column=0, padx=10, pady=5, sticky="ew")
+            button.grid(row=index + 2)
+    else:
+        for child in playlist_frame.winfo_children():
+            print(child)
+            if isinstance(child, customtkinter.CTkLabel):
+                child.destroy()
+        button.grid(row=1)
+
+
+def delete_playlist(playlist, playlist_canva):
+    global playlists
+
+    print(playlist)
+
+    playlists.pop(playlist)
+    set_playing_playlist("")
+
+    config.remove_option("playlists", playlist)
+
+    playlist_canva.destroy()
+
+    with open(configPath, 'w', encoding="utf-8") as configfile:
+        config.write(configfile)
 
 def refresh_playlists(frame):
 
@@ -238,16 +291,28 @@ def refresh_playlists(frame):
         if len(name) > 20:
             name = name[:20] + "..."
 
-        new_playlist_frame = customtkinter.CTkFrame(frame, fg_color=clickable_color, height=40)
-        new_playlist_frame.grid(row=index, padx=20, pady=10, sticky="ew")
-        new_playlist_frame.columnconfigure(0, weight=1)
+        new_playlist_frame = customtkinter.CTkFrame(frame, fg_color=background_color)
+        new_playlist_frame.grid(row=index, padx=20, pady=5, sticky="ew")
+        new_playlist_frame.grid_columnconfigure(0, weight=1)
 
-        new_playlist_title = customtkinter.CTkLabel(new_playlist_frame, text_color=mainText_color, fg_color="transparent", text=name, width=100, wraplength=100)
-        new_playlist_title.grid(row=0, column=0, padx=5, pady=0, sticky="w")
+        new_playlist_top_frame = customtkinter.CTkFrame(new_playlist_frame, fg_color=foreground_color, height=40)
+        new_playlist_top_frame.grid(row=0, column=0, padx=5, pady=5, sticky="ew")
+        new_playlist_top_frame.grid_columnconfigure(0, weight=1)
 
-        new_playlist_play_button = customtkinter.CTkButton(new_playlist_frame, text_color=mainText_color, hover_color=main_hover_color, fg_color=clickable_color, text="LOAD")
+        new_playlist_infos_button = customtkinter.CTkButton(new_playlist_frame, text_color=mainText_color,fg_color=clickable_color, hover_color=main_hover_color, text="", height=10, width=320)
+        new_playlist_infos_button.configure(command=lambda p=playlist, f=new_playlist_frame, b=new_playlist_infos_button: show_playlist_songs(p, f, b))
+        new_playlist_infos_button.grid(row=1, column=0, padx=5, pady=5, sticky="ew")
+
+        new_playlist_title = customtkinter.CTkLabel(new_playlist_top_frame, text_color=mainText_color, fg_color="transparent", text=name, height=35)
+        new_playlist_title.grid(row=0, column=0, padx=0, pady=0, sticky="ew")
+
+        new_playlist_del_button = customtkinter.CTkButton(new_playlist_top_frame, text_color=mainText_color, hover_color=main_hover_color, fg_color=clickable_color, text="DELETE", width=75, height=35)
+        new_playlist_del_button.configure(command=lambda f=new_playlist_frame, p=playlist: delete_playlist(p, f))
+        new_playlist_del_button.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
+
+        new_playlist_play_button = customtkinter.CTkButton(new_playlist_top_frame, text_color=mainText_color, hover_color=main_hover_color, fg_color=clickable_color, text="LOAD", width=75, height=35)
         new_playlist_play_button.configure(command=lambda p=playlist: set_playing_playlist(p))
-        new_playlist_play_button.grid(row=0, column=1, padx=5, pady=0, sticky="ew")
+        new_playlist_play_button.grid(row=0, column=2, padx=5, pady=5, sticky="ew")
 
 new_playlist_songs_list = []
 def create_playlist(button, name):
@@ -329,7 +394,7 @@ def init_music(song):
     music_time = File(os.path.join(filesDirectory, song)).info.length
     slider_time.configure(to=music_time, state="normal")
     timer_end_text.configure(text="%02d:%02d" % (music_time // 60, music_time - (music_time // 60) * 60))
-    musicTitle.configure(text=("[" + str(playingSong + 1) + "] " + (pygame.mixer.music.get_metadata()["title"] if pygame.mixer.music.get_metadata()["title"] else os.path.splitext(song)[0])))
+    musicTitle.configure(text=(pygame.mixer.music.get_metadata()["title"] if pygame.mixer.music.get_metadata()["title"] else os.path.splitext(song)[0]))
     refresh_timePlayed(0, False)
 
 def play_music():
