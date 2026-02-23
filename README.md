@@ -11,7 +11,7 @@
 -A slider for the volume moment ✅ <br />
 -Make the music being user's choice ✅ <br />
 -Music loop button system ✅ <br />
--Playlists system (finished but still needs polishing) ✅❌ <br />
+-Playlists system ✅ <br />
 
 Less important: <br />
 -Upgrade UI ✅ <br />
