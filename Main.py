@@ -1,5 +1,6 @@
 # Mp3-shi V16:
 import threading
+import tkinter
 
 import customtkinter
 from tkinter import filedialog
@@ -40,8 +41,10 @@ loopIconsList = {
 }
 
 appIcon = {
-    "Light" : os.path.join(appIconsPath, "NoBGIconLight.ico"),
-    "Dark"  : os.path.join(appIconsPath, "NoBGIcon.ico"),
+    "Light"      : os.path.join(appIconsPath, "NoBGIconLight.ico"),
+    "Dark"       : os.path.join(appIconsPath, "NoBGIcon.ico"),
+    "Lightpng"   : os.path.join(appIconsPath, "NoBGIconLight.png"),
+    "Darkpng"  : os.path.join(appIconsPath, "NoBGIcon.png"),
 }
 
 mainText_color       = ("#ffedd3", "#bdd0ff")
@@ -133,7 +136,7 @@ playButton.grid(row=1, column=1, padx=5, pady=10, sticky="ew")
 nextButton = customtkinter.CTkButton(playFrame, text=">", width=75, height=75, text_color=mainText_color, fg_color=clickable_color, hover_color=main_hover_color, font=("", 60))
 nextButton.grid(row=1, column=2, padx=5, pady=10, sticky="ew")
 
-loopImage = customtkinter.CTkImage(light_image=Image.open(os.path.join(loopIconsPath, loopIconsList[loopMode][0])), dark_image=Image.open(os.path.join(loopIconsPath, loopIconsList[loopMode][1])), size=(50, 50))
+loopImage = customtkinter.CTkImage(light_image=Image.open(os.path.join(loopIconsPath, loopIconsList[loopMode][0])).convert("RGBA"), dark_image=Image.open(os.path.join(loopIconsPath, loopIconsList[loopMode][1])).convert("RGBA"), size=(50, 50))
 
 loopButton = customtkinter.CTkButton(playFrame, image=loopImage, text="", width=75, height=75, text_color=mainText_color, fg_color=clickable_color, hover_color=main_hover_color)
 loopButton.grid(row=1, column=3, padx=5, pady=10, sticky="e")
@@ -161,27 +164,31 @@ else:
 
 if int(config.get('QOL', 'loop_mode')) != 0:
     loopMode = int(config.get('QOL', 'loop_mode'))
-    loopImage.configure(light_image=Image.open(os.path.join(loopIconsPath, loopIconsList[loopMode][0])), dark_image=Image.open(os.path.join(loopIconsPath, loopIconsList[loopMode][1])))
+    loopImage.configure(light_image=Image.open(os.path.join(loopIconsPath, loopIconsList[loopMode][0])).convert("RGBA"), dark_image=Image.open(os.path.join(loopIconsPath, loopIconsList[loopMode][1])).convert("RGBA"))
 
 def change_color_mode():
     config.read(configPath, encoding="utf-8")
     if customtkinter.get_appearance_mode() == "Light":
         customtkinter.set_appearance_mode("Dark")
-        app.iconbitmap(appIcon[customtkinter.get_appearance_mode()])
         config.set('QOL', 'dark_mode', "enabled")
     else:
         customtkinter.set_appearance_mode("Light")
         config.set('QOL', 'dark_mode', "disabled")
-    app.iconbitmap(appIcon[customtkinter.get_appearance_mode()])
+
+    if os.name == 'nt':
+        app.iconbitmap(appIcon[customtkinter.get_appearance_mode()])
+    app.iconphoto(False, tkinter.PhotoImage(file=appIcon[str(customtkinter.get_appearance_mode()) + "png"]))
+
     with open(configPath, 'w', encoding="utf-8") as configfile:
         config.write(configfile)
 
 if config.get('QOL', 'dark_mode') == "enabled":
     customtkinter.set_appearance_mode("dark")
-    app.iconbitmap(appIcon[customtkinter.get_appearance_mode()])
 else:
     customtkinter.set_appearance_mode("light")
+if os.name == 'nt':
     app.iconbitmap(appIcon[customtkinter.get_appearance_mode()])
+app.iconphoto(False, tkinter.PhotoImage(file=appIcon[str(customtkinter.get_appearance_mode()) + "png"]))
 
 def choose_song():
     if filesDirectory and songsCount > 0:
@@ -381,7 +388,7 @@ def change_loop_mode():
         loopMode = 0
     else:
         loopMode += 1
-    loopImage.configure(light_image=Image.open(os.path.join(loopIconsPath, loopIconsList[loopMode][0])), dark_image=Image.open(os.path.join(loopIconsPath, loopIconsList[loopMode][1])))
+    loopImage.configure(light_image=Image.open(os.path.join(loopIconsPath, loopIconsList[loopMode][0])).convert("RGBA"), dark_image=Image.open(os.path.join(loopIconsPath, loopIconsList[loopMode][1])).convert("RGBA"))
     config.set('QOL', 'loop_mode', str(loopMode))
     with open(configPath, 'w', encoding="utf-8") as configfile:
         config.write(configfile)
