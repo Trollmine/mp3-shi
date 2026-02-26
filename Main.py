@@ -1,6 +1,5 @@
 # Mp3-shi V16:
 import threading
-import tkinter
 
 import customtkinter
 from tkinter import filedialog
@@ -13,18 +12,24 @@ import os
 import time
 import configparser
 
+#Chargement de la configuration
 config = configparser.ConfigParser()
 
+
+# Chemins vers les dépendances
 configPath    = os.path.join("Dependencies", "config.ini")
 imagesPath    = os.path.join("Dependencies", "Images")
 loopIconsPath = os.path.join(imagesPath, "LoopIcon")
 appIconsPath  = os.path.join(imagesPath, "AppIcon")
 
+# Dictionnaire stockant toutes les playlists
 playlists = {
 }
 
-current_playlist = ""
+current_playlist = ""  #Playlist actuellement chargée (vide = aucune)
 
+
+# Lecture du fichier config et chargement des playlists sauvegardées
 config.read(configPath, encoding="utf-8")
 for playlist in config["playlists"]:
     songslist = config["playlists"][playlist].split("/")
@@ -33,6 +38,8 @@ for playlist in config["playlists"]:
 
 print(playlists)
 
+
+# Association des modes de boucle avec leurs icônes (light/dark)
 loopIconsList = {
     0 : ["noLoopLight.png", "noLoopDark.png"],
     1 : ["loopOneLight.png", "loopOneDark.png"],
@@ -40,13 +47,15 @@ loopIconsList = {
     3 : ["loopRandomLight.png", "loopRandomDark.png"],
 }
 
+
+# Icône de l'application selon le thème
 appIcon = {
-    "Light"      : os.path.join(appIconsPath, "NoBGIconLight.ico"),
-    "Dark"       : os.path.join(appIconsPath, "NoBGIcon.ico"),
-    "Lightpng"   : os.path.join(appIconsPath, "NoBGIconLight.png"),
-    "Darkpng"  : os.path.join(appIconsPath, "NoBGIcon.png"),
+    "Light" : os.path.join(appIconsPath, "NoBGIconLight.ico"),
+    "Dark"  : os.path.join(appIconsPath, "NoBGIcon.ico"),
 }
 
+
+#  Palette de couleurs (Light / Dark)
 mainText_color       = ("#ffedd3", "#bdd0ff")
 mainBackground_color = ("#ffd59a", "#4a536b")
 foreground_color     = ("#ffc26c", "#40485d")
@@ -56,6 +65,8 @@ main_hover_color     = ("#d99739", "#2a3c6c")
 main_bars_color      = ("#ffdfb2", "#6a748e")
 hover_bars_color     = ("#e3c7a1", "#4f5668")
 
+
+# Couleurs des boutons de sélection de chansons (playlist)
 unselected_color       = clickable_color
 selected_color         = ("#7ee451", "#3d8c57")
 unselected_text_color  = mainText_color
@@ -63,12 +74,16 @@ selected_text_color    = ("#e7ffdc", "#a5deb8")
 unselected_hover_color = main_hover_color
 selected_hover_color   = ("#4aa422", "#176e34")
 
+
+# Création de la fenêtre principale
 app = customtkinter.CTk(fg_color=mainBackground_color)
 app.title("MP3-SHI")
 app.geometry("960x540")
 app.minsize(540, 540)
 app.toplevel_window = None
 
+
+#  Variables importantes
 filesDirectory = ""
 filesList      = []
 songsCount     = 0
@@ -76,16 +91,26 @@ playingSong    = -1   # -1 means there is no playing songs, otherwise the playin
 loopMode       = 0    # 0= doesn't loop, 1= loop the same song, 2= loop all songs, 3= loop all songs randomly,
 paused         = True
 
+
+# Formats audio supportés
 songFormats = (".mp3", ".wav", ".ogg", ".flac", ".mid", ".midi")
 
+
+# Suivi du temps de lecture
 timePlayed = 0
 lastPlayed = 0
 
+
+# Construction de l'interface graphique
 app.grid_columnconfigure(0, weight=1)
 
+
+# Titre de la chanson en cours
 musicTitle = customtkinter.CTkLabel(app, text="", font=("", 50), text_color=mainText_color)
 musicTitle.grid(row=0, padx=20, pady=(20,0), sticky="ewn")
 
+
+# Nom de la playlist active
 playlistTitle = customtkinter.CTkLabel(app, text="", font=("", 20), text_color=mainText_color)
 playlistTitle.grid(row=1, padx=20, pady=0, sticky="ewn")
 
@@ -99,12 +124,15 @@ sliderFrame = customtkinter.CTkFrame(topFrame, fg_color="transparent")
 sliderFrame.grid(row=0, padx= 20, pady= (5,0), sticky="ew")
 sliderFrame.grid_columnconfigure(1, weight=1)
 
+# Affichage du temps écoulé
 timer_text  = customtkinter.CTkLabel(sliderFrame, width=10, height=20, text="00:00", text_color=mainText_color, font=("", 20))
 timer_text.grid(row=0, column=0, padx=20, pady=20, sticky="ewn")
 
+# Affichage de la durée totale de la chanson
 timer_end_text  = customtkinter.CTkLabel(sliderFrame, width=10, height=20, text="00:00", text_color=mainText_color, font=("", 20))
 timer_end_text.grid(row=0, column=2, padx=20, pady=20, sticky="ewn")
 
+# Barre de progression de la chanson
 slider_time = customtkinter.CTkSlider(sliderFrame, from_=0, to=1, state="disabled", button_color=clickable_color, button_hover_color=main_hover_color, progress_color=main_bars_color, fg_color=hover_bars_color)
 slider_time.set(0)
 slider_time.grid(row=0, column=1, padx=10, pady=20, sticky="ewn")
@@ -113,6 +141,7 @@ slider_time.grid(row=0, column=1, padx=10, pady=20, sticky="ewn")
 very_topFrame = customtkinter.CTkFrame(topFrame, fg_color="transparent", height=50)
 very_topFrame.grid(row=1, padx=20, pady=(10,5))
 
+# Boutons principaux (fichier, playlist, paramètres)
 openMusicButton = customtkinter.CTkButton(very_topFrame, text="CHOOSE A FILE", fg_color=clickable_color, hover_color=main_hover_color, text_color=mainText_color, width=100)
 openMusicButton.grid(padx=10, pady=0, row=0, column=0, sticky="ew")
 
@@ -127,6 +156,7 @@ playFrame = customtkinter.CTkFrame(topFrame, fg_color=foreground_color)
 playFrame.grid(row=2, padx= 20, pady= (0,5), sticky="ewns")
 playFrame.grid_columnconfigure(1, weight=1)
 
+# Boutons de contrôle de lecture (précédent, lecture/pause, suivant, boucle)
 previousButton = customtkinter.CTkButton(playFrame, text="<", width=75, height=75, text_color=mainText_color, fg_color=clickable_color, hover_color=main_hover_color, font=("", 60))
 previousButton.grid(row=1, column=0, padx=5, pady=10, sticky="w")
 
@@ -136,24 +166,30 @@ playButton.grid(row=1, column=1, padx=5, pady=10, sticky="ew")
 nextButton = customtkinter.CTkButton(playFrame, text=">", width=75, height=75, text_color=mainText_color, fg_color=clickable_color, hover_color=main_hover_color, font=("", 60))
 nextButton.grid(row=1, column=2, padx=5, pady=10, sticky="ew")
 
-loopImage = customtkinter.CTkImage(light_image=Image.open(os.path.join(loopIconsPath, loopIconsList[loopMode][0])).convert("RGBA"), dark_image=Image.open(os.path.join(loopIconsPath, loopIconsList[loopMode][1])).convert("RGBA"), size=(50, 50))
+# Icône et bouton du mode de boucle
+loopImage = customtkinter.CTkImage(light_image=Image.open(os.path.join(loopIconsPath, loopIconsList[loopMode][0])), dark_image=Image.open(os.path.join(loopIconsPath, loopIconsList[loopMode][1])), size=(50, 50))
 
 loopButton = customtkinter.CTkButton(playFrame, image=loopImage, text="", width=75, height=75, text_color=mainText_color, fg_color=clickable_color, hover_color=main_hover_color)
 loopButton.grid(row=1, column=3, padx=5, pady=10, sticky="e")
 
+# Slider de volume
 slider_volume = customtkinter.CTkSlider(app, from_=0, to=1, command=pygame.mixer.music.set_volume, button_color=clickable_color, button_hover_color=main_hover_color, progress_color=main_bars_color, fg_color=hover_bars_color)
 slider_volume.set(1)
 slider_volume.grid(padx=20, pady=20)
 
+# Label d'information
 info_label = customtkinter.CTkLabel(app, text="", fg_color="transparent")
 info_label.grid(padx=20, pady=20)
 
+# Initialisation de pygame et chargement du dossier sauvegardé
 pygame.mixer.init()
 
 config.read(configPath, encoding="utf-8")
 if config.get('path_directory', 'path') == "none" or not config.get('path_directory', 'path') or not os.path.exists(config.get('path_directory', 'path')) :
+    # Aucun dossier valide trouvé dans la config
     info_label.configure(text="No songs folder selected, or not found, select one in the settings menu")
 else:
+    # Chargement du dossier et des fichiers audio
     filesDirectory = config.get('path_directory', 'path')
     for file in os.listdir(filesDirectory):
         if file.endswith(songFormats):
@@ -162,33 +198,31 @@ else:
     pygame.mixer.music.load(os.path.join(filesDirectory, filesList[0]))
     info_label.configure(text="your songs folder is " + config.get('path_directory', 'path') + " and you have " + str(songsCount) + " songs in this folder")
 
+# Restauration du mode de boucle depuis la config
 if int(config.get('QOL', 'loop_mode')) != 0:
     loopMode = int(config.get('QOL', 'loop_mode'))
-    loopImage.configure(light_image=Image.open(os.path.join(loopIconsPath, loopIconsList[loopMode][0])).convert("RGBA"), dark_image=Image.open(os.path.join(loopIconsPath, loopIconsList[loopMode][1])).convert("RGBA"))
+    loopImage.configure(light_image=Image.open(os.path.join(loopIconsPath, loopIconsList[loopMode][0])), dark_image=Image.open(os.path.join(loopIconsPath, loopIconsList[loopMode][1])))
 
 def change_color_mode():
     config.read(configPath, encoding="utf-8")
     if customtkinter.get_appearance_mode() == "Light":
         customtkinter.set_appearance_mode("Dark")
+        app.iconbitmap(appIcon[customtkinter.get_appearance_mode()])
         config.set('QOL', 'dark_mode', "enabled")
     else:
         customtkinter.set_appearance_mode("Light")
         config.set('QOL', 'dark_mode', "disabled")
-
-    if os.name == 'nt':
-        app.iconbitmap(appIcon[customtkinter.get_appearance_mode()])
-    app.iconphoto(False, tkinter.PhotoImage(file=appIcon[str(customtkinter.get_appearance_mode()) + "png"]))
-
+    app.iconbitmap(appIcon[customtkinter.get_appearance_mode()])
     with open(configPath, 'w', encoding="utf-8") as configfile:
         config.write(configfile)
 
+# Application du thème sauvegardé au démarrage
 if config.get('QOL', 'dark_mode') == "enabled":
     customtkinter.set_appearance_mode("dark")
+    app.iconbitmap(appIcon[customtkinter.get_appearance_mode()])
 else:
     customtkinter.set_appearance_mode("light")
-if os.name == 'nt':
     app.iconbitmap(appIcon[customtkinter.get_appearance_mode()])
-app.iconphoto(False, tkinter.PhotoImage(file=appIcon[str(customtkinter.get_appearance_mode()) + "png"]))
 
 def choose_song():
     if filesDirectory and songsCount > 0:
@@ -213,7 +247,7 @@ def choose_directory(window):
     if filesDirectory:
         secondFilesList = os.listdir(filesDirectory)
         filesList = []
-
+        # Filtrage des fichiers audio uniquement
         for file in secondFilesList:
             if file.lower().endswith(songFormats):
                 filesList += [file]
@@ -228,6 +262,7 @@ def set_playing_playlist(playlist):
     global current_playlist, songsCount
     print(playlist)
     if playlist == "" or current_playlist == playlists[playlist]:
+        # Retour à la liste complète des fichiers
         current_playlist = ""
         songsCount = len(filesList)
         playlistTitle.configure(text="")
@@ -240,6 +275,7 @@ def set_playing_playlist(playlist):
 def show_playlist_songs(playlist, playlist_frame, button):
     playlist_songs = playlists[playlist]
     playlist_frame.winfo_children()
+    # Suppression des labels existants
     for child in playlist_frame.winfo_children():
         print(child)
         if isinstance(child, customtkinter.CTkLabel):
@@ -247,6 +283,7 @@ def show_playlist_songs(playlist, playlist_frame, button):
 
     if button.grid_info()["row"] == 1:
         print(button.grid_info()["row"])
+        # Affichage de chaque chanson avec titre, album, artiste et durée
         for index, song in enumerate(playlist_songs):
             title, album, artist, time = (
                 pygame.mixer.music.get_metadata(os.path.join(filesDirectory, song))["title"],
@@ -278,7 +315,7 @@ def delete_playlist(playlist, playlist_canva):
     global playlists
 
     print(playlist)
-
+    # Si la playlist supprimée est active, on la décharge d'abord
     if current_playlist == playlists[playlist]:
         set_playing_playlist("")
 
@@ -292,7 +329,7 @@ def delete_playlist(playlist, playlist_canva):
         config.write(configfile)
 
 def refresh_playlists(frame):
-
+    # Suppression des widgets existants
     for widget in frame.winfo_children():
         widget.destroy()
 
@@ -312,22 +349,22 @@ def refresh_playlists(frame):
         new_playlist_top_frame = customtkinter.CTkFrame(new_playlist_frame, fg_color=foreground_color, height=40)
         new_playlist_top_frame.grid(row=0, column=0, padx=5, pady=5, sticky="ew")
         new_playlist_top_frame.grid_columnconfigure(0, weight=1)
-
+        # Bouton pour afficher/masquer les chansons de la playlist
         new_playlist_infos_button = customtkinter.CTkButton(new_playlist_frame, text_color=mainText_color,fg_color=clickable_color, hover_color=main_hover_color, text="", height=10, anchor="center", width=new_playlist_frame.cget("width")*5)
         new_playlist_infos_button.configure(command=lambda p=playlist, f=new_playlist_frame, b=new_playlist_infos_button: show_playlist_songs(p, f, b))
         new_playlist_infos_button.grid(row=1, column=0, padx=5, pady=5, sticky="w")
 
         new_playlist_title = customtkinter.CTkLabel(new_playlist_top_frame, text_color=mainText_color, fg_color="transparent", text=name, height=35)
         new_playlist_title.grid(row=0, column=0, padx=0, pady=0, sticky="ew")
-
+        # Bouton de suppression de la playlist
         new_playlist_del_button = customtkinter.CTkButton(new_playlist_top_frame, text_color=mainText_color, hover_color=main_hover_color, fg_color=clickable_color, text="DELETE", width=75, height=35)
         new_playlist_del_button.configure(command=lambda f=new_playlist_frame, p=playlist: delete_playlist(p, f))
         new_playlist_del_button.grid(row=0, column=1, padx=5, pady=5, sticky="ew")
-
+        # Bouton pour charger la playlist
         new_playlist_play_button = customtkinter.CTkButton(new_playlist_top_frame, text_color=mainText_color, hover_color=main_hover_color, fg_color=clickable_color, text="LOAD", width=75, height=35)
         new_playlist_play_button.configure(command=lambda p=playlist: set_playing_playlist(p))
         new_playlist_play_button.grid(row=0, column=2, padx=5, pady=5, sticky="ew")
-
+# Liste temporaire des chansons sélectionnées pour la nouvelle playlist
 new_playlist_songs_list = []
 def create_playlist(button, name):
     global new_playlist_songs_list, playlists
@@ -357,6 +394,7 @@ def select_songs_to_create_playlist():
 def select_song(button, songname):
     global new_playlist_songs_list
     if button.cget("fg_color") == unselected_color:
+        # Ajout de la chanson à la sélection
         button.configure(fg_color=selected_color, hover_color=selected_hover_color, text_color=selected_text_color)
         new_playlist_songs_list += [songname]
     else:
@@ -388,7 +426,7 @@ def change_loop_mode():
         loopMode = 0
     else:
         loopMode += 1
-    loopImage.configure(light_image=Image.open(os.path.join(loopIconsPath, loopIconsList[loopMode][0])).convert("RGBA"), dark_image=Image.open(os.path.join(loopIconsPath, loopIconsList[loopMode][1])).convert("RGBA"))
+    loopImage.configure(light_image=Image.open(os.path.join(loopIconsPath, loopIconsList[loopMode][0])), dark_image=Image.open(os.path.join(loopIconsPath, loopIconsList[loopMode][1])))
     config.set('QOL', 'loop_mode', str(loopMode))
     with open(configPath, 'w', encoding="utf-8") as configfile:
         config.write(configfile)
