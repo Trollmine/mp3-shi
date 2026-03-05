@@ -1,0 +1,35 @@
+def init_music(song):
+    global playingSong, timePlayed, paused
+
+    # Si on reçoit un entier, on met à jour l'index de la chanson en cours
+    if type(song) == int:
+        playingSong = song
+
+    # Récupère le fichier selon qu'une playlist est active ou non
+    song = current_playlist[playingSong] if current_playlist else filesList[playingSong]
+
+    # Charge et lance la lecture du fichier audio
+    pygame.mixer.music.load(os.path.join(filesDirectory, song))
+    pygame.mixer.music.play()
+
+    # Met l'interface en état "en lecture"
+    playButton.configure(text="PAUSE")
+    paused = False
+
+    # Remet le compteur et le curseur à zéro
+    timePlayed = 0
+    slider_time.set(0)
+
+    # Récupère la durée exacte du fichier pour configurer le slider
+    music_time = File(os.path.join(filesDirectory, song)).info.length
+    slider_time.configure(to=music_time, state="normal")
+    timer_end_text.configure(text="%02d:%02d" % (music_time // 60, music_time - (music_time // 60) * 60))
+
+    # Affiche le titre ID3 si disponible, sinon le nom du fichier
+    musicTitle.configure(text=(
+        pygame.mixer.music.get_metadata()["title"]
+        if pygame.mixer.music.get_metadata()["title"]
+        else os.path.splitext(song)[0]
+    ))
+
+    refresh_timePlayed(0, False)
