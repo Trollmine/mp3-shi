@@ -13,6 +13,8 @@ import os
 import time
 import configparser
 
+from sqlalchemy import column
+
 config = configparser.ConfigParser()
 
 configPath    = os.path.join("Dependencies", "config.ini")
@@ -83,35 +85,36 @@ lastPlayed = 0
 
 app.grid_columnconfigure(0, weight=1)
 
-musicTitle = customtkinter.CTkLabel(app, text="", font=("", 50), text_color=mainText_color)
-musicTitle.grid(row=0, padx=20, pady=(20,0), sticky="ewn")
-
-playlistTitle = customtkinter.CTkLabel(app, text="", font=("", 20), text_color=mainText_color)
-playlistTitle.grid(row=1, padx=20, pady=0, sticky="ewn")
-
 # topFrame part
 topFrame = customtkinter.CTkFrame(app, fg_color=foreground_color)
 topFrame.grid(row=2, padx=20, pady=20, sticky="ewn")
 topFrame.grid_columnconfigure(0, weight=1)
 
-# sliderFrame in topFrame part
-sliderFrame = customtkinter.CTkFrame(topFrame, fg_color="transparent")
-sliderFrame.grid(row=0, padx= 20, pady= (5,0), sticky="ew")
-sliderFrame.grid_columnconfigure(1, weight=1)
+# music/playlist titles
+musicTitle = customtkinter.CTkLabel(topFrame, text="NO SONG PLAYING", font=("", 50), text_color=mainText_color)
+musicTitle.grid(row=0, padx=20, pady=(20,0), sticky="ewn")
 
-timer_text  = customtkinter.CTkLabel(sliderFrame, width=10, height=20, text="00:00", text_color=mainText_color, font=("", 20))
-timer_text.grid(row=0, column=0, padx=20, pady=20, sticky="ewn")
+playlistTitle = customtkinter.CTkLabel(topFrame, text="", font=("", 20), text_color=mainText_color)
+playlistTitle.grid(row=1, padx=20, pady=0, sticky="ewn")
 
-timer_end_text  = customtkinter.CTkLabel(sliderFrame, width=10, height=20, text="00:00", text_color=mainText_color, font=("", 20))
-timer_end_text.grid(row=0, column=2, padx=20, pady=20, sticky="ewn")
+# timeSliderFrame in topFrame part
+timeSliderFrame = customtkinter.CTkFrame(topFrame, fg_color="transparent")
+timeSliderFrame.grid(row=2, padx= 20, pady= (5,0), sticky="ew")
+timeSliderFrame.grid_columnconfigure(1, weight=1)
 
-slider_time = customtkinter.CTkSlider(sliderFrame, from_=0, to=1, state="disabled", button_color=clickable_color, button_hover_color=main_hover_color, progress_color=main_bars_color, fg_color=hover_bars_color)
+timer_text  = customtkinter.CTkLabel(timeSliderFrame, width=10, height=20, text="00:00", text_color=mainText_color, font=("", 20))
+timer_text.grid(row=0, column=0, padx=10, pady=10, sticky="ewn")
+
+timer_end_text  = customtkinter.CTkLabel(timeSliderFrame, width=10, height=20, text="00:00", text_color=mainText_color, font=("", 20))
+timer_end_text.grid(row=0, column=2, padx=10, pady=10, sticky="ewn")
+
+slider_time = customtkinter.CTkSlider(timeSliderFrame, from_=0, to=1, state="disabled", button_color=clickable_color, button_hover_color=main_hover_color, progress_color=main_bars_color, fg_color=hover_bars_color)
 slider_time.set(0)
-slider_time.grid(row=0, column=1, padx=10, pady=20, sticky="ewn")
+slider_time.grid(row=0, column=1, padx=10, pady=10, sticky="ewn")
 
 # TopFrame in topFrame part
 very_topFrame = customtkinter.CTkFrame(topFrame, fg_color="transparent", height=50)
-very_topFrame.grid(row=1, padx=20, pady=(10,5))
+very_topFrame.grid(row=4, padx=20, pady=(10,5))
 
 openMusicButton = customtkinter.CTkButton(very_topFrame, text="CHOOSE A FILE", fg_color=clickable_color, hover_color=main_hover_color, text_color=mainText_color, width=100)
 openMusicButton.grid(padx=10, pady=0, row=0, column=0, sticky="ew")
@@ -124,7 +127,7 @@ openSettingsButton.grid(padx=10, pady=0, row=0, column=2, sticky="ew")
 
 # playFrame in topFrame part
 playFrame = customtkinter.CTkFrame(topFrame, fg_color=foreground_color)
-playFrame.grid(row=2, padx= 20, pady= (0,5), sticky="ewns")
+playFrame.grid(row=5, padx= 20, pady= (0,5), sticky="ewns")
 playFrame.grid_columnconfigure(1, weight=1)
 
 previousButton = customtkinter.CTkButton(playFrame, text="<", width=75, height=75, text_color=mainText_color, fg_color=clickable_color, hover_color=main_hover_color, font=("", 60))
@@ -141,11 +144,19 @@ loopImage = customtkinter.CTkImage(light_image=Image.open(os.path.join(loopIcons
 loopButton = customtkinter.CTkButton(playFrame, image=loopImage, text="", width=75, height=75, text_color=mainText_color, fg_color=clickable_color, hover_color=main_hover_color)
 loopButton.grid(row=1, column=3, padx=5, pady=10, sticky="e")
 
-slider_volume = customtkinter.CTkSlider(app, from_=0, to=1, command=pygame.mixer.music.set_volume, button_color=clickable_color, button_hover_color=main_hover_color, progress_color=main_bars_color, fg_color=hover_bars_color)
-slider_volume.set(1)
-slider_volume.grid(padx=20, pady=20)
+# volumeSliderFrame in topFrame part
+volumeSliderFrame = customtkinter.CTkFrame(topFrame, fg_color="transparent")
+volumeSliderFrame.grid(row=3, padx= 100, pady= (0,5), sticky="ew")
+volumeSliderFrame.grid_columnconfigure(0, weight=1)
 
-info_label = customtkinter.CTkLabel(app, text="", fg_color="transparent")
+slider_volume = customtkinter.CTkSlider(volumeSliderFrame, from_=0, to=1, command=pygame.mixer.music.set_volume, button_color=clickable_color, button_hover_color=main_hover_color, progress_color=main_bars_color, fg_color=hover_bars_color)
+slider_volume.set(1)
+slider_volume.grid(padx=10, pady=10,column=0, sticky="ew")
+
+volume_text = customtkinter.CTkLabel(volumeSliderFrame, text="100", text_color=mainText_color, font=("", 20))
+volume_text.grid(row=0, column=1, padx=10, pady=10, sticky="ew")
+
+info_label = customtkinter.CTkLabel(app, text="", fg_color="transparent", text_color=mainText_color)
 info_label.grid(padx=20, pady=20)
 
 pygame.mixer.init()
