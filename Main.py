@@ -41,6 +41,10 @@ volumeIconList = {
     3 : ["LightVolume3.png","DarkVolume3.png"],
 }
 
+noAlbumIconList = {
+    0 : ["LightNoAlbumImage.png","DarkNoAlbumImage.png"],
+}
+
 loopIconsList = {
     0 : ["noLoopLight.png", "noLoopDark.png"],
     1 : ["loopOneLight.png", "loopOneDark.png"],
@@ -73,8 +77,8 @@ selected_hover_color   = ("#4aa422", "#176e34")
 
 app = customtkinter.CTk(fg_color=mainBackground_color)
 app.title("MP3-SHI")
-app.geometry("960x540")
-app.minsize(540, 540)
+app.geometry("960x640")
+app.minsize(540, 640)
 app.toplevel_window = None
 
 filesDirectory = ""
@@ -104,13 +108,14 @@ playlistTitle = customtkinter.CTkLabel(topFrame, text="", font=("", 20), text_co
 playlistTitle.grid(row=1, padx=20, pady=0, sticky="ewn")
 
 # album cover
-#album_cover =
+album_cover = customtkinter.CTkImage(light_image=Image.open(os.path.join(otherImagesPath, noAlbumIconList[0][0])).convert("RGBA"), dark_image=Image.open(os.path.join(otherImagesPath, noAlbumIconList[0][1])).convert("RGBA"), size=(200, 200))
 
-#album_cover_container =
+album_cover_container = customtkinter.CTkButton(topFrame, image=album_cover, text="", width=75, height=75, text_color=mainText_color, fg_color="transparent", hover= False)
+album_cover_container.grid(row=2, column=0, padx=5, pady=0, sticky="ewn")
 
 # timeSliderFrame in topFrame part
 timeSliderFrame = customtkinter.CTkFrame(topFrame, fg_color="transparent")
-timeSliderFrame.grid(row=2, padx= 20, pady= (5,0), sticky="ew")
+timeSliderFrame.grid(row=3, padx= 20, pady= (5,0), sticky="ew")
 timeSliderFrame.grid_columnconfigure(1, weight=1)
 
 timer_text  = customtkinter.CTkLabel(timeSliderFrame, width=10, height=20, text="00:00", text_color=mainText_color, font=("", 20))
@@ -125,7 +130,7 @@ slider_time.grid(row=0, column=1, padx=10, pady=10, sticky="ewn")
 
 # TopFrame in topFrame part
 very_topFrame = customtkinter.CTkFrame(topFrame, fg_color="transparent", height=50)
-very_topFrame.grid(row=4, padx=20, pady=(10,5))
+very_topFrame.grid(row=5, padx=20, pady=(10,5))
 
 openMusicButton = customtkinter.CTkButton(very_topFrame, text="CHOOSE A FILE", fg_color=clickable_color, hover_color=main_hover_color, text_color=mainText_color, width=100)
 openMusicButton.grid(padx=10, pady=0, row=0, column=0, sticky="ew")
@@ -138,7 +143,7 @@ openSettingsButton.grid(padx=10, pady=0, row=0, column=2, sticky="ew")
 
 # playFrame in topFrame part
 playFrame = customtkinter.CTkFrame(topFrame, fg_color=foreground_color)
-playFrame.grid(row=5, padx= 20, pady= (0,5), sticky="ewns")
+playFrame.grid(row=6, padx= 20, pady= (0,5), sticky="ewns")
 playFrame.grid_columnconfigure(1, weight=1)
 
 previousButton = customtkinter.CTkButton(playFrame, text="<", width=75, height=75, text_color=mainText_color, fg_color=clickable_color, hover_color=main_hover_color, font=("", 60))
@@ -157,7 +162,7 @@ loopButton.grid(row=1, column=3, padx=5, pady=10, sticky="e")
 
 # volumeSliderFrame in topFrame part
 volumeSliderFrame = customtkinter.CTkFrame(topFrame, fg_color="transparent")
-volumeSliderFrame.grid(row=3, padx= 100, pady= (0,5), sticky="ew")
+volumeSliderFrame.grid(row=4, padx= 100, pady= (0,5), sticky="ew")
 volumeSliderFrame.grid_columnconfigure(1, weight=1)
 
 volumeImage = customtkinter.CTkImage(light_image=Image.open(os.path.join(otherImagesPath, volumeIconList[3][0])).convert("RGBA"), dark_image=Image.open(os.path.join(otherImagesPath, volumeIconList[3][1])).convert("RGBA"), size=(30, 30))
@@ -172,8 +177,8 @@ slider_volume.grid(row=0, column=1, padx=10, pady=10, sticky="ew")
 volume_text = customtkinter.CTkLabel(volumeSliderFrame, text="100", text_color=mainText_color, font=("", 20), anchor="center")
 volume_text.grid(row=0, column=2, padx=10, pady=10, sticky="ew")
 
-info_label = customtkinter.CTkLabel(app, text="", fg_color="transparent", text_color=mainText_color)
-info_label.grid(padx=20, pady=20)
+info_label = customtkinter.CTkLabel(topFrame, text="", fg_color="transparent", text_color=mainText_color)
+info_label.grid(row=7, padx=10, pady=10)
 
 pygame.mixer.init()
 
@@ -452,16 +457,41 @@ def init_music(song):
         playingSong = song
 
     song = current_playlist[playingSong] if current_playlist else filesList[playingSong]
+    audio = File(os.path.join(filesDirectory, song))
     pygame.mixer.music.load(os.path.join(filesDirectory, song))
     pygame.mixer.music.play()
     playButton.configure(text="PAUSE")
     paused = False
     timePlayed = 0
     slider_time.set(0)
-    music_time = File(os.path.join(filesDirectory, song)).info.length
+    music_time = audio.info.length
     slider_time.configure(to=music_time, state="normal")
     timer_end_text.configure(text="%02d:%02d" % (music_time // 60, music_time - (music_time // 60) * 60))
     musicTitle.configure(text=(pygame.mixer.music.get_metadata()["title"] if pygame.mixer.music.get_metadata()["title"] else os.path.splitext(song)[0]))
+
+    cover = ""
+    tags = audio.tags
+    if tags:
+        # MP3 to ID3 APIC
+        if hasattr(tags, "values"):
+            for tag in tags.values():
+                if hasattr(tag, "FrameID") and tag.FrameID == "APIC":
+                    cover = tag.data
+
+        # FLAC to pictures
+        if hasattr(audio, "pictures") and audio.pictures:
+            cover = audio.pictures[0].data
+
+    if cover:
+        with open(os.path.join(otherImagesPath, "cover.png"), "wb") as f:
+            f.write(cover)
+
+        image = Image.open(os.path.join(otherImagesPath, "cover.png")).resize((1080,1080))
+
+        album_cover.configure(light_image=image.convert("RGBA"), dark_image=image.convert("RGBA"))
+    else:
+        album_cover.configure(light_image=Image.open(os.path.join(otherImagesPath, noAlbumIconList[0][0])).convert("RGBA"), dark_image=Image.open(os.path.join(otherImagesPath, noAlbumIconList[0][1])).convert("RGBA"))
+
     refresh_timePlayed(0, False)
 
 def play_music():
