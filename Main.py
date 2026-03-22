@@ -1,4 +1,4 @@
-# Mp3-shi V16:
+# Mp3-shi V17:
 import threading
 import tkinter
 
@@ -13,14 +13,13 @@ import os
 import time
 import configparser
 
-from sqlalchemy import column
-
 config = configparser.ConfigParser()
 
-configPath    = os.path.join("Dependencies", "config.ini")
-imagesPath    = os.path.join("Dependencies", "Images")
-loopIconsPath = os.path.join(imagesPath, "LoopIcon")
-appIconsPath  = os.path.join(imagesPath, "AppIcon")
+configPath      = os.path.join("Dependencies", "config.ini")
+imagesPath      = os.path.join("Dependencies", "Images")
+loopIconsPath   = os.path.join(imagesPath, "LoopIcon")
+appIconsPath    = os.path.join(imagesPath, "AppIcon")
+otherImagesPath = os.path.join(imagesPath, "OtherImages")
 
 playlists = {
 }
@@ -34,6 +33,13 @@ for playlist in config["playlists"]:
     playlists[playlist] = songslist
 
 print(playlists)
+
+volumeIconList = {
+    0 : ["LightVolume0.png","DarkVolume0.png"],
+    1 : ["LightVolume1.png","DarkVolume1.png"],
+    2 : ["LightVolume2.png","DarkVolume2.png"],
+    3 : ["LightVolume3.png","DarkVolume3.png"],
+}
 
 loopIconsList = {
     0 : ["noLoopLight.png", "noLoopDark.png"],
@@ -97,6 +103,11 @@ musicTitle.grid(row=0, padx=20, pady=(20,0), sticky="ewn")
 playlistTitle = customtkinter.CTkLabel(topFrame, text="", font=("", 20), text_color=mainText_color)
 playlistTitle.grid(row=1, padx=20, pady=0, sticky="ewn")
 
+# album cover
+#album_cover =
+
+#album_cover_container =
+
 # timeSliderFrame in topFrame part
 timeSliderFrame = customtkinter.CTkFrame(topFrame, fg_color="transparent")
 timeSliderFrame.grid(row=2, padx= 20, pady= (5,0), sticky="ew")
@@ -147,14 +158,19 @@ loopButton.grid(row=1, column=3, padx=5, pady=10, sticky="e")
 # volumeSliderFrame in topFrame part
 volumeSliderFrame = customtkinter.CTkFrame(topFrame, fg_color="transparent")
 volumeSliderFrame.grid(row=3, padx= 100, pady= (0,5), sticky="ew")
-volumeSliderFrame.grid_columnconfigure(0, weight=1)
+volumeSliderFrame.grid_columnconfigure(1, weight=1)
+
+volumeImage = customtkinter.CTkImage(light_image=Image.open(os.path.join(otherImagesPath, volumeIconList[3][0])).convert("RGBA"), dark_image=Image.open(os.path.join(otherImagesPath, volumeIconList[3][1])).convert("RGBA"), size=(30, 30))
+
+volumeButton = customtkinter.CTkButton(volumeSliderFrame, image=volumeImage, text="", width=5, height=5, text_color=mainText_color, fg_color="transparent", hover=False)
+volumeButton.grid(row=0, column=0, padx=10, pady=10, sticky="ew")
 
 slider_volume = customtkinter.CTkSlider(volumeSliderFrame, from_=0, to=1, command=pygame.mixer.music.set_volume, button_color=clickable_color, button_hover_color=main_hover_color, progress_color=main_bars_color, fg_color=hover_bars_color)
 slider_volume.set(1)
-slider_volume.grid(padx=10, pady=10,column=0, sticky="ew")
+slider_volume.grid(row=0, column=1, padx=10, pady=10, sticky="ew")
 
-volume_text = customtkinter.CTkLabel(volumeSliderFrame, text="100", text_color=mainText_color, font=("", 20))
-volume_text.grid(row=0, column=1, padx=10, pady=10, sticky="ew")
+volume_text = customtkinter.CTkLabel(volumeSliderFrame, text="100", text_color=mainText_color, font=("", 20), anchor="center")
+volume_text.grid(row=0, column=2, padx=10, pady=10, sticky="ew")
 
 info_label = customtkinter.CTkLabel(app, text="", fg_color="transparent", text_color=mainText_color)
 info_label.grid(padx=20, pady=20)
@@ -284,7 +300,6 @@ def show_playlist_songs(playlist, playlist_frame, button):
                 child.destroy()
         button.grid(row=1)
 
-
 def delete_playlist(playlist, playlist_canva):
     global playlists
 
@@ -391,6 +406,33 @@ def refresh_timePlayed(elapsedTime, isSlider):
 
     slider_time.set(timePlayed/1000)
     timer_text.configure(text="%02d:%02d"%((timePlayed/1000)//60,(timePlayed/1000)-((timePlayed/1000)//60)*60))
+
+def change_volume_icon(volume, is_button=False):
+    volume = round(volume*100)
+
+    if is_button and slider_volume.get() == 0:
+        volume = 100
+
+    if volume == 0:
+        volumeImage.configure(light_image=Image.open(os.path.join(otherImagesPath, volumeIconList[0][0])).convert("RGBA"), dark_image=Image.open(os.path.join(otherImagesPath, volumeIconList[0][1])).convert("RGBA"))
+    elif volume <= 30:
+        volumeImage.configure(light_image=Image.open(os.path.join(otherImagesPath, volumeIconList[1][0])).convert("RGBA"), dark_image=Image.open(os.path.join(otherImagesPath, volumeIconList[1][1])).convert("RGBA"))
+    elif volume <= 75:
+        volumeImage.configure(light_image=Image.open(os.path.join(otherImagesPath, volumeIconList[2][0])).convert("RGBA"), dark_image=Image.open(os.path.join(otherImagesPath, volumeIconList[2][1])).convert("RGBA"))
+    else:
+        volumeImage.configure(light_image=Image.open(os.path.join(otherImagesPath, volumeIconList[3][0])).convert("RGBA"), dark_image=Image.open(os.path.join(otherImagesPath, volumeIconList[3][1])).convert("RGBA"))
+
+    if volume < 10:
+        volume_text.configure(text="    " + str(volume))
+    elif volume < 100:
+        volume_text.configure(text="  " + str(volume))
+    else:
+        volume_text.configure(text= str(volume))
+
+    print(volume)
+
+    slider_volume.set(volume/100)
+    pygame.mixer.music.set_volume(volume/100)
 
 def change_loop_mode():
     global loopMode
@@ -573,6 +615,9 @@ previousButton.configure(command=prev_music)
 loopButton.configure(command=change_loop_mode)
 
 slider_time.configure(command=lambda x: [pygame.mixer.music.set_pos(slider_time.get()), refresh_timePlayed(slider_time.get(), True)])
+slider_volume.configure(command=lambda x: [change_volume_icon(slider_volume.get())])
+
+volumeButton.configure(command=lambda: change_volume_icon(0, True))
 
 def refresh_thread():
     global paused, playingSong, timePlayed
@@ -624,7 +669,7 @@ def refresh_thread():
                     timePlayed = 0
                     paused = False
 
-        time.sleep(.05)
+        time.sleep(1)
 
 refreshThread = threading.Thread(target=refresh_thread)
 refreshThread.start()
