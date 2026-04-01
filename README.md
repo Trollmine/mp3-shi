@@ -16,6 +16,7 @@
 Less important: <br />
 -Upgrade UI ✅*2 <br />
 -Way to get the song infos (metadatas) ✅ <br />
+-Make a "starting animation" ✅ <br />
 -Make a visualizer <br />
 
 ## Instalation
