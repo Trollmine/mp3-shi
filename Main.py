@@ -1,4 +1,4 @@
-# Mp3-shi V17:
+# Mp3-shi V18:
 import threading
 import tkinter
 
@@ -57,7 +57,7 @@ appIcon = {
     "Light"      : os.path.join(appIconsPath, "NoBGIconLight.ico"),
     "Dark"       : os.path.join(appIconsPath, "NoBGIcon.ico"),
     "Lightpng"   : os.path.join(appIconsPath, "NoBGIconLight.png"),
-    "Darkpng"  : os.path.join(appIconsPath, "NoBGIcon.png"),
+    "Darkpng"    : os.path.join(appIconsPath, "NoBGIcon.png"),
 }
 
 mainText_color       = ("#ffedd3", "#bdd0ff")
@@ -182,6 +182,65 @@ volume_text.grid(row=0, column=2, padx=10, pady=10, sticky="ew")
 info_label = customtkinter.CTkLabel(topFrame, text="", fg_color="transparent", text_color=mainText_color)
 info_label.grid(row=7, padx=10, pady=10)
 
+if config.get('QOL', 'dark_mode') == "enabled":
+    customtkinter.set_appearance_mode("dark")
+else:
+    customtkinter.set_appearance_mode("light")
+if os.name == 'nt':
+    app.iconbitmap(appIcon[customtkinter.get_appearance_mode()])
+app.iconphoto(False, tkinter.PhotoImage(file=appIcon[str(customtkinter.get_appearance_mode()) + "png"]))
+
+# overlay ui (For the starting animation)
+overlayFrame = customtkinter.CTkFrame(app, fg_color=mainBackground_color)
+overlayFrame.grid(row=0, column=0, sticky="nsew")
+overlayFrame.grid_columnconfigure(0, weight=1)
+overlayFrame.grid_rowconfigure(0, weight=1)
+overlayFrame.lift() # Makes sure it covers everything
+
+animation_image_original = Image.open(appIcon[str(customtkinter.get_appearance_mode()) + "png"]).convert("RGBA")
+animation_img = customtkinter.CTkImage(animation_image_original, size=(200, 200))
+
+animation_label = customtkinter.CTkLabel(overlayFrame, image=animation_img, text="")
+animation_label.grid(sticky="nsew")
+
+# starting animation:
+angle = 30
+def rotate_logo():
+    global angle
+    angle -= 5
+
+    rotated = animation_image_original.rotate(angle)
+    image = customtkinter.CTkImage(rotated, size=(300, 300))
+
+    animation_label.configure(image=image)
+    animation_label.image = image
+
+    if angle > -360:
+        app.after(20, rotate_logo)
+    else:
+        fade_out_overlay()
+
+def fade_out_overlay(step=0):
+    if step <= 15:
+        alpha = 1 - (step / 15)
+        app.attributes("-alpha", alpha)
+
+        app.after(30, lambda: fade_out_overlay(step + 1))
+    else:
+        overlayFrame.destroy()
+        fade_in_main()
+
+def fade_in_main(step=0):
+    if step <= 15:
+        alpha = step / 15
+        app.attributes("-alpha", alpha)
+
+        app.after(30, lambda: fade_in_main(step + 1))
+    else:
+        app.attributes("-alpha", 1)
+
+app.after(100, rotate_logo)
+
 pygame.mixer.init()
 
 config.read(configPath, encoding="utf-8")
@@ -215,14 +274,6 @@ def change_color_mode():
 
     with open(configPath, 'w', encoding="utf-8") as configfile:
         config.write(configfile)
-
-if config.get('QOL', 'dark_mode') == "enabled":
-    customtkinter.set_appearance_mode("dark")
-else:
-    customtkinter.set_appearance_mode("light")
-if os.name == 'nt':
-    app.iconbitmap(appIcon[customtkinter.get_appearance_mode()])
-app.iconphoto(False, tkinter.PhotoImage(file=appIcon[str(customtkinter.get_appearance_mode()) + "png"]))
 
 def choose_song():
     if filesDirectory and songsCount > 0:
