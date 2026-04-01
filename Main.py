@@ -6,6 +6,7 @@ import customtkinter
 from tkinter import filedialog
 
 from PIL import Image
+import numpy as np
 from mutagen import File
 import pygame
 import random
@@ -94,10 +95,11 @@ timePlayed = 0
 lastPlayed = 0
 
 app.grid_columnconfigure(0, weight=1)
+app.grid_rowconfigure(0, weight=1)
 
 # topFrame part
 topFrame = customtkinter.CTkFrame(app, fg_color=foreground_color)
-topFrame.grid(row=2, padx=20, pady=20, sticky="ewn")
+topFrame.grid(row=0, padx=10, pady=10, sticky="ewns")
 topFrame.grid_columnconfigure(0, weight=1)
 
 # music/playlist titles
@@ -110,8 +112,8 @@ playlistTitle.grid(row=1, padx=20, pady=0, sticky="ewn")
 # album cover
 album_cover = customtkinter.CTkImage(light_image=Image.open(os.path.join(otherImagesPath, noAlbumIconList[0][0])).convert("RGBA"), dark_image=Image.open(os.path.join(otherImagesPath, noAlbumIconList[0][1])).convert("RGBA"), size=(200, 200))
 
-album_cover_container = customtkinter.CTkButton(topFrame, image=album_cover, text="", width=75, height=75, text_color=mainText_color, fg_color="transparent", hover= False)
-album_cover_container.grid(row=2, column=0, padx=5, pady=0, sticky="ewn")
+album_cover_container = customtkinter.CTkButton(topFrame, image=album_cover, text="", width=200, height=200, text_color=mainText_color, fg_color=background_color, hover=False)
+album_cover_container.grid(row=2, column=0, padx=0, pady=0, sticky="ns")
 
 # timeSliderFrame in topFrame part
 timeSliderFrame = customtkinter.CTkFrame(topFrame, fg_color="transparent")
@@ -451,6 +453,24 @@ def change_loop_mode():
     with open(configPath, 'w', encoding="utf-8") as configfile:
         config.write(configfile)
 
+def get_image(audio):
+    cover = None
+    tags = audio.tags
+    if tags:
+        # MP3 to ID3 APIC
+        if hasattr(tags, "values"):
+            for tag in tags.values():
+                if hasattr(tag, "FrameID") and tag.FrameID == "APIC":
+                    cover = tag.data
+
+        # FLAC to pictures
+        if hasattr(audio, "pictures") and audio.pictures:
+            cover = audio.pictures[0].data
+    if cover:
+        return cover
+    else:
+        return None
+
 def init_music(song):
     global playingSong, timePlayed, paused
     if type(song) == int:
@@ -469,18 +489,7 @@ def init_music(song):
     timer_end_text.configure(text="%02d:%02d" % (music_time // 60, music_time - (music_time // 60) * 60))
     musicTitle.configure(text=(pygame.mixer.music.get_metadata()["title"] if pygame.mixer.music.get_metadata()["title"] else os.path.splitext(song)[0]))
 
-    cover = ""
-    tags = audio.tags
-    if tags:
-        # MP3 to ID3 APIC
-        if hasattr(tags, "values"):
-            for tag in tags.values():
-                if hasattr(tag, "FrameID") and tag.FrameID == "APIC":
-                    cover = tag.data
-
-        # FLAC to pictures
-        if hasattr(audio, "pictures") and audio.pictures:
-            cover = audio.pictures[0].data
+    cover = get_image(audio)
 
     if cover:
         with open(os.path.join(otherImagesPath, "cover.png"), "wb") as f:
@@ -489,8 +498,15 @@ def init_music(song):
         image = Image.open(os.path.join(otherImagesPath, "cover.png")).resize((1080,1080))
 
         album_cover.configure(light_image=image.convert("RGBA"), dark_image=image.convert("RGBA"))
+
+        image_array = np.array(image)                           # Converts the image into an array containing all the pixels colors (I guess)
+        mean_color  = image_array.mean(axis=(0,1)).astype(int)  # Uses the numpy array to calculate the average color as an RGB color value (for exemple: [77 43 23])
+        hex_color   = "#{:02x}{:02x}{:02x}".format(*mean_color) # Formats the RGB value color to a hexadecimal color value (for exemple: #4d2b17)
+
+        album_cover_container.configure(fg_color=hex_color)
     else:
         album_cover.configure(light_image=Image.open(os.path.join(otherImagesPath, noAlbumIconList[0][0])).convert("RGBA"), dark_image=Image.open(os.path.join(otherImagesPath, noAlbumIconList[0][1])).convert("RGBA"))
+        album_cover_container.configure(fg_color=background_color)
 
     refresh_timePlayed(0, False)
 
