@@ -1,18 +1,18 @@
 # Mp3-shi V18:
 import threading
 import tkinter
-
 import customtkinter
-from tkinter import filedialog
-
-from PIL import Image
-import numpy as np
-from mutagen import File
+from   tkinter   import filedialog
+from   PIL       import Image
+import numpy     as np
+from   mutagen   import File
+import soundfile as sf
 import pygame
 import random
 import os
 import time
 import configparser
+import math
 
 config = configparser.ConfigParser()
 
@@ -275,6 +275,15 @@ def change_color_mode():
     with open(configPath, 'w', encoding="utf-8") as configfile:
         config.write(configfile)
 
+def load_audio_data(filepath):
+    data, samplerate = sf.read(filepath)
+
+    # Converts stereo to mono audio
+    if len(data.shape) > 1:
+        data = data.mean(axis=1)
+
+    return data, samplerate
+
 def choose_song():
     if filesDirectory and songsCount > 0:
         open_window("CHOOSE A SONG")
@@ -308,6 +317,9 @@ def choose_directory(window):
         info_label.configure(
             text="your songs folder is " + config.get('path_directory', 'path') + " and you have " + str(
                 songsCount) + " songs in this folder")
+
+def Animate_visualizer():
+    print()
 
 def set_playing_playlist(playlist):
     global current_playlist, songsCount
@@ -629,10 +641,13 @@ def open_window(name):
     newWindow.grid_columnconfigure(0, weight=1)
     newWindow.grid_rowconfigure(0, weight=1)
 
-    scrollingFrame = customtkinter.CTkScrollableFrame(master=newWindow, fg_color=foreground_color, scrollbar_button_color=main_bars_color, scrollbar_button_hover_color=hover_bars_color)
-    scrollingFrame.grid(padx=10, pady=10, column=0, row=0, sticky="ewns")
-    scrollingFrame.grid_columnconfigure(0, weight=1)
     if name == "Settings":
+        scrollingFrame = customtkinter.CTkScrollableFrame(master=newWindow, fg_color=foreground_color,
+                                                          scrollbar_button_color=main_bars_color,
+                                                          scrollbar_button_hover_color=hover_bars_color)
+        scrollingFrame.grid(padx=10, pady=10, column=0, row=0, sticky="ewns")
+        scrollingFrame.grid_columnconfigure(0, weight=1)
+
         changeDirectoryButton = customtkinter.CTkButton(master=scrollingFrame, text="SELECT DIRECTORY", height=40, text_color=mainText_color, fg_color=clickable_color, hover_color=main_hover_color)
         changeDirectoryButton.configure(command=lambda :choose_directory(newWindow))
         changeDirectoryButton.grid(row=0, padx=20, pady=10, sticky="ew")
@@ -640,15 +655,41 @@ def open_window(name):
         darkModeButton = customtkinter.CTkButton(master=scrollingFrame, text="LIGHT/DARK MODE", height=40, text_color=mainText_color, command=change_color_mode, fg_color=clickable_color, hover_color=main_hover_color)
         darkModeButton.grid(row=1, padx=20, pady=10, sticky="ew")
 
+        VisualizerButton = customtkinter.CTkButton(master=scrollingFrame,
+                                                   text="...", height=40,
+                                                   text_color=mainText_color,
+                                                   command=lambda: open_window("Visualizer"),
+                                                   fg_color=clickable_color,
+                                                   hover_color=main_hover_color)
+        VisualizerButton.grid(row=2, padx=20, pady=10, sticky="ew")
+
     elif name == "Songs": # Shows all songs from the current selected directory
+        scrollingFrame = customtkinter.CTkScrollableFrame(master=newWindow, fg_color=foreground_color,
+                                                          scrollbar_button_color=main_bars_color,
+                                                          scrollbar_button_hover_color=hover_bars_color)
+        scrollingFrame.grid(padx=10, pady=10, column=0, row=0, sticky="ewns")
+        scrollingFrame.grid_columnconfigure(0, weight=1)
+
         realindex = 0
         for index, file in enumerate(os.listdir(filesDirectory)):
             if not file.endswith(songFormats): continue
-            button = customtkinter.CTkButton(master=scrollingFrame, text=pygame.mixer.music.get_metadata(os.path.join(filesDirectory, file))["title"] if pygame.mixer.music.get_metadata(os.path.join(filesDirectory, file))["title"] else os.path.splitext(file)[0], height=40, fg_color=clickable_color, hover_color=main_hover_color, command=lambda i=realindex: init_music(i), text_color=mainText_color)
+            button = customtkinter.CTkButton(master=scrollingFrame,
+                                             text=pygame.mixer.music.get_metadata(os.path.join(filesDirectory,file))["title"] if pygame.mixer.music.get_metadata(os.path.join(filesDirectory, file))["title"] else os.path.splitext(file)[0],
+                                             height=40,
+                                             fg_color=clickable_color,
+                                             hover_color=main_hover_color,
+                                             command=lambda i=realindex: init_music(i),
+                                             text_color=mainText_color)
             button.grid(row=realindex, padx=20, pady=10, sticky="ew")
             realindex += 1
 
     elif name == "Create playlist":
+        scrollingFrame = customtkinter.CTkScrollableFrame(master=newWindow, fg_color=foreground_color,
+                                                          scrollbar_button_color=main_bars_color,
+                                                          scrollbar_button_hover_color=hover_bars_color)
+        scrollingFrame.grid(padx=10, pady=10, column=0, row=0, sticky="ewns")
+        scrollingFrame.grid_columnconfigure(0, weight=1)
+
         scrollingFrame.configure(height=250)
         scrollingFrame.grid(row=1, padx=20, pady=5, sticky="ew")
         newWindow.grid_rowconfigure(1, weight=1)
@@ -676,6 +717,12 @@ def open_window(name):
             button.grid(row=index, padx=20, pady=10, sticky="ew")
 
     elif name == "Playlists":
+        scrollingFrame = customtkinter.CTkScrollableFrame(master=newWindow, fg_color=foreground_color,
+                                                          scrollbar_button_color=main_bars_color,
+                                                          scrollbar_button_hover_color=hover_bars_color)
+        scrollingFrame.grid(padx=10, pady=10, column=0, row=0, sticky="ewns")
+        scrollingFrame.grid_columnconfigure(0, weight=1)
+
         newWindow.geometry("600x375")
         newWindow.grid_rowconfigure(0, weight=0)
         newWindow.grid_rowconfigure(1, weight=1)
@@ -690,6 +737,9 @@ def open_window(name):
             print("empty")
 
         refresh_playlists(scrollingFrame)
+
+    elif name == "Visualizer":
+        newWindow.geometry("1000x1000")
 
     Windows.insert(len(Windows), newWindow)
 
